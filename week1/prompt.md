@@ -103,3 +103,32 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 6.  **Go to your repo Settings -> Pages ->** Select source `Deploy from a branch` -> Branch `main` / `root` and click Save. Your page will be live at `https://[your-username].github.io/random-lunch-generator` in a minute.
 
 Would you like me to help you write the initial code for `index.html`, `style.css`, and `script.js` next?
+
+---
+
+## Q: Sometimes the food image is not displayed (e.g. for Ramen, Pasta, Soup). Before writing the icon list, check that every Font Awesome class actually exists in the free 6.4.0 set on cdnjs. Only use verified class names, and add a plain-text fallback (emoji) in case the icon font fails to load.
+
+Good catch. The problem is in the `lunchMenu` array: three entries use class names that do not exist in Font Awesome 6.4.0 Free, so the `<i>` element renders as empty space:
+
+| Item  | Broken class     | Fixed class        |
+|-------|------------------|--------------------|
+| Ramen | `fas fa-bowl-hot`| `fas fa-bowl-food` |
+| Pasta | `fas fa-pasta`   | `fas fa-wheat-awn` |
+| Soup  | `fas fa-bowl`    | `fas fa-bowl-rice` |
+
+The other nine names (`fa-pizza-slice`, `fa-fish`, `fa-hamburger`, `fa-leaf`, `fa-utensil-spoon`, `fa-bread-slice`, `fa-mortar-pestle`, `fa-drumstick-bite`, `fa-fire`) are valid.
+
+Two changes in `index.html`:
+
+1. Each menu item gets an `emoji` field next to `icon`, and the three broken classes are replaced.
+2. After inserting the `<i>` element, the script reads its `::before` content. If the font did not load or the glyph is missing, the emoji is shown instead:
+
+```js
+const iconEl = foodIcon.querySelector('i');
+const glyph = getComputedStyle(iconEl, '::before').content;
+if (!glyph || glyph === 'none' || glyph === '""') {
+    foodIcon.textContent = selectedLunch.emoji;
+}
+```
+
+This way an image is always displayed, both when the CDN is available and when it is blocked or offline.

@@ -154,18 +154,18 @@
             
             // Array of lunch options with corresponding Font Awesome icons
             const lunchMenu = [
-                { name: "Pizza", icon: "fas fa-pizza-slice" },
-                { name: "Sushi", icon: "fas fa-fish" },
-                { name: "Burger", icon: "fas fa-hamburger" },
-                { name: "Salad", icon: "fas fa-leaf" },
-                { name: "Tacos", icon: "fas fa-utensil-spoon" },
-                { name: "Ramen", icon: "fas fa-bowl-hot" },
-                { name: "Sandwich", icon: "fas fa-bread-slice" },
-                { name: "Pasta", icon: "fas fa-pasta" },
-                { name: "Curry", icon: "fas fa-mortar-pestle" },
-                { name: "Steak", icon: "fas fa-drumstick-bite" },
-                { name: "Soup", icon: "fas fa-bowl" },
-                { name: "BBQ", icon: "fas fa-fire" }
+                { name: "Pizza", emoji: "🍕", icon: "fas fa-pizza-slice" },
+                { name: "Sushi", emoji: "🍣", icon: "fas fa-fish" },
+                { name: "Burger", emoji: "🍔", icon: "fas fa-hamburger" },
+                { name: "Salad", emoji: "🥗", icon: "fas fa-leaf" },
+                { name: "Tacos", emoji: "🌮", icon: "fas fa-utensil-spoon" },
+                { name: "Ramen", emoji: "🍜", icon: "fas fa-bowl-food" },
+                { name: "Sandwich", emoji: "🥪", icon: "fas fa-bread-slice" },
+                { name: "Pasta", emoji: "🍝", icon: "fas fa-wheat-awn" },
+                { name: "Curry", emoji: "🍛", icon: "fas fa-mortar-pestle" },
+                { name: "Steak", emoji: "🥩", icon: "fas fa-drumstick-bite" },
+                { name: "Soup", emoji: "🍲", icon: "fas fa-bowl-rice" },
+                { name: "BBQ", emoji: "🍖", icon: "fas fa-fire" }
             ];
             
             // Function to generate random lunch
@@ -184,6 +184,12 @@
                 // After a short delay, show the selected lunch
                 setTimeout(() => {
                     foodIcon.innerHTML = `<i class="${selectedLunch.icon}"></i>`;
+                    // Fall back to an emoji if the icon font did not load or the glyph is missing
+                    const iconEl = foodIcon.querySelector('i');
+                    const glyph = getComputedStyle(iconEl, '::before').content;
+                    if (!glyph || glyph === 'none' || glyph === '""') {
+                        foodIcon.textContent = selectedLunch.emoji;
+                    }
                     foodName.textContent = selectedLunch.name;
                     
                     // Add animation class
