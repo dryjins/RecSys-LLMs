@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Factorization Movie Recommender</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Matrix Factorization Movie Recommender</h1>
+            <p>Train a collaborative filtering model in your browser using TensorFlow.js</p>
+        </header>
+        
+        <main>
+            <div class="controls">
+                <div class="input-group">
+                    <label for="user-select">Select User:</label>
+                    <select id="user-select">
+                        <option value="">Loading users...</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="movie-select">Select Movie:</label>
+                    <select id="movie-select">
+                        <option value="">Loading movies...</option>
+                    </select>
+                </div>
+                
+                <button id="predict-btn" onclick="predictRating()" disabled>Predict Rating</button>
+            </div>
+            
+            <div id="status" class="status">Loading data and training model...</div>
+            <div id="result" class="result"></div>
+        </main>
+    </div>
+
+    <!-- Load TensorFlow.js first, then our data module, then our main script -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
