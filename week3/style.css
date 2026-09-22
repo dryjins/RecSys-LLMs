@@ -22,7 +22,7 @@ body {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     padding: 30px;
     width: 90%;
-    max-width: 600px;
+    max-width: 900px;
 }
 
 h1 {
@@ -44,7 +44,7 @@ p {
     margin-bottom: 25px;
 }
 
-#movie-select {
+#user-select {
     padding: 12px;
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -53,7 +53,7 @@ p {
     transition: border-color 0.3s;
 }
 
-#movie-select:focus {
+#user-select:focus {
     border-color: #3498db;
     outline: none;
 }
@@ -74,28 +74,42 @@ p {
 }
 
 #result-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.result-column {
     background-color: #f8f9fa;
     padding: 20px;
     border-radius: 5px;
     border-left: 4px solid #3498db;
 }
 
-#result {
-    font-weight: bold;
+.result-column h2 {
+    font-size: 1.05rem;
     color: #2c3e50;
+    margin-bottom: 10px;
     text-align: left;
+}
+
+.result-column p,
+.result-column ul {
+    text-align: left;
+    color: #2c3e50;
     margin: 0;
 }
 
-.loading {
-    color: #7f8c8d;
-    font-style: italic;
+.result-column ul {
+    padding-left: 20px;
+}
+
+@media (max-width: 640px) {
+    #result-box {
+        grid-template-columns: 1fr;
+    }
 }
 
 .error {
     color: #e74c3c;
-}
-
-.success {
-    color: #27ae60;
 }

@@ -3,23 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Content-Based Movie Recommender</title>
+    <title>Collaborative Filtering Movie Recommender</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Content-Based Movie Recommender</h1>
-        <p>Select a movie you like, and we'll find similar ones for you!</p>
-        
+        <h1>Collaborative Filtering Movie Recommender</h1>
+        <p>Select a user, and we will recommend movies two ways: by similar users (User-Based CF) and by similar movies (Item-Based CF).</p>
+
         <div class="controls">
-            <select id="movie-select">
-                <option value="" disabled selected>Select a movie</option>
+            <select id="user-select">
+                <option value="" disabled selected>Select a user</option>
             </select>
             <button id="recommend-btn" onclick="getRecommendations()">Get Recommendations</button>
         </div>
-        
+
         <div id="result-box">
-            <p id="result">Please wait, loading data...</p>
+            <div class="result-column">
+                <h2>User-Based CF</h2>
+                <div id="user-based-result"><p>Please wait, loading data...</p></div>
+            </div>
+            <div class="result-column">
+                <h2>Item-Based CF</h2>
+                <div id="item-based-result"><p>Please wait, loading data...</p></div>
+            </div>
         </div>
     </div>
 

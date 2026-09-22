@@ -1,124 +1,136 @@
+// ---------------------------------------------------------------------------
+// HW3 — Collaborative Filtering core
+//
+// Missing-value strategy (see week3/readme.md section 6). Choose EXACTLY ONE
+// and keep it consistent in cosineSimilarity below:
+//
+//   [ ] use co-rated entries only
+//   [ ] mean imputation
+//   [ ] weight similarity by the number of co-rated items
+//
+// Delete the two you did not choose.
+// ---------------------------------------------------------------------------
+
 // Initialize the application when the window loads
 window.onload = async function() {
+    const userBased = document.getElementById('user-based-result');
+    const itemBased = document.getElementById('item-based-result');
+
     try {
-        // Display loading message
-        const resultElement = document.getElementById('result');
-        resultElement.textContent = "Loading movie data...";
-        resultElement.className = 'loading';
-        
-        // Load data
+        userBased.innerHTML = '<p>Loading movie data...</p>';
+        itemBased.innerHTML = '<p>Loading movie data...</p>';
+
         await loadData();
-        
-        // Populate dropdown and update status
-        populateMoviesDropdown();
-        resultElement.textContent = "Data loaded. Please select a movie.";
-        resultElement.className = 'success';
+
+        populateUserDropdown();
+
+        userBased.innerHTML = '<p>Data loaded. Select a user.</p>';
+        itemBased.innerHTML = '<p>Data loaded. Select a user.</p>';
     } catch (error) {
         console.error('Initialization error:', error);
-        // Error message already set in data.js
+        // The error message is already shown by data.js
     }
 };
 
-// Populate the movies dropdown with sorted movie titles
-function populateMoviesDropdown() {
-    const selectElement = document.getElementById('movie-select');
-    
+// Populate the user dropdown with one option per user id found in u.data
+function populateUserDropdown() {
+    const selectElement = document.getElementById('user-select');
+
     // Clear existing options except the first placeholder
     while (selectElement.options.length > 1) {
         selectElement.remove(1);
     }
-    
-    // Sort movies alphabetically by title
-    const sortedMovies = [...movies].sort((a, b) => a.title.localeCompare(b.title));
-    
-    // Add movies to dropdown
-    sortedMovies.forEach(movie => {
+
+    for (let userId = 1; userId <= numUsers; userId++) {
         const option = document.createElement('option');
-        option.value = movie.id;
-        option.textContent = movie.title;
+        option.value = userId;
+        option.textContent = `User ${userId}`;
         selectElement.appendChild(option);
-    });
+    }
 }
 
-// Main recommendation function
+// ---------------------------------------------------------------------------
+// TODO (HW3) — cosine similarity between two rating vectors.
+//
+// Compare only co-rated (non-zero) entries, per the missing-value strategy
+// you chose above. Return 0 when the denominator is 0 (that is, when the two
+// vectors share no rated items). See week3/readme.md section 5.3.
+//
+// Inputs: two arrays of equal length (slice the rating matrix column or row).
+// Output: a number in [0, 1].
+// ---------------------------------------------------------------------------
+function cosineSimilarity(a, b) {
+    // your implementation here
+    return 0;
+}
+
+// ---------------------------------------------------------------------------
+// TODO (HW3) — User-Based CF.
+//
+// Return the top-K recommendations for the active user as an array of
+// { title, score }, sorted by score descending.
+//
+// Suggested steps (week3/readme.md section 5.4):
+//   1. compare the active user's rating vector against every other user
+//   2. take the N most similar users with positive similarity (e.g. N = 20)
+//   3. for each movie the active user has NOT rated, predict a score as the
+//      similarity-weighted average of those users' ratings
+//   4. sort and take the top K
+// ---------------------------------------------------------------------------
+function getUserBasedRecommendations(activeUserId, topK = 5) {
+    // your implementation here
+    return [];
+}
+
+// ---------------------------------------------------------------------------
+// TODO (HW3) — Item-Based CF.
+//
+// Return the top-K recommendations for the active user as an array of
+// { title, score }, sorted by score descending.
+//
+// Suggested steps (week3/readme.md section 5.5):
+//   1. for each movie the active user has rated, compute the item-item
+//      similarity against every other movie's rating column
+//   2. for each candidate movie the active user has NOT rated, aggregate the
+//      similarities from the rated movies, weighted by the user's rating
+//   3. sort and take the top K
+// ---------------------------------------------------------------------------
+function getItemBasedRecommendations(activeUserId, topK = 5) {
+    // your implementation here
+    return [];
+}
+
+// Provided — read the selected user and render both recommendation lists
 function getRecommendations() {
-    const resultElement = document.getElementById('result');
-    
-    try {
-        // Step 1: Get user input
-        const selectElement = document.getElementById('movie-select');
-        const selectedMovieId = parseInt(selectElement.value);
-        
-        if (isNaN(selectedMovieId)) {
-            resultElement.textContent = "Please select a movie first.";
-            resultElement.className = 'error';
-            return;
-        }
-        
-        // Step 2: Find the liked movie
-        const likedMovie = movies.find(movie => movie.id === selectedMovieId);
-        if (!likedMovie) {
-            resultElement.textContent = "Error: Selected movie not found in database.";
-            resultElement.className = 'error';
-            return;
-        }
-        
-        // Show loading message while processing
-        resultElement.textContent = "Calculating recommendations...";
-        resultElement.className = 'loading';
-        
-        // Use setTimeout to allow the UI to update before heavy computation
-        setTimeout(() => {
-            try {
-                // Step 3: Prepare for similarity calculation
-                const likedGenres = new Set(likedMovie.genres);
-                const candidateMovies = movies.filter(movie => movie.id !== likedMovie.id);
-                
-                // Step 4: Calculate Jaccard similarity scores
-                const scoredMovies = candidateMovies.map(candidate => {
-                    const candidateGenres = new Set(candidate.genres);
-                    
-                    // Calculate intersection
-                    const intersection = new Set(
-                        [...likedGenres].filter(genre => candidateGenres.has(genre))
-                    );
-                    
-                    // Calculate union
-                    const union = new Set([...likedGenres, ...candidateGenres]);
-                    
-                    // Calculate Jaccard similarity
-                    const score = union.size > 0 ? intersection.size / union.size : 0;
-                    
-                    return {
-                        ...candidate,
-                        score: score
-                    };
-                });
-                
-                // Step 5: Sort by score in descending order
-                scoredMovies.sort((a, b) => b.score - a.score);
-                
-                // Step 6: Select top recommendations
-                const topRecommendations = scoredMovies.slice(0, 2);
-                
-                // Step 7: Display results
-                if (topRecommendations.length > 0) {
-                    const recommendationTitles = topRecommendations.map(movie => movie.title);
-                    resultElement.textContent = `Because you liked "${likedMovie.title}", we recommend: ${recommendationTitles.join(', ')}`;
-                    resultElement.className = 'success';
-                } else {
-                    resultElement.textContent = `No recommendations found for "${likedMovie.title}".`;
-                    resultElement.className = 'error';
-                }
-            } catch (error) {
-                console.error('Error in recommendation calculation:', error);
-                resultElement.textContent = "An error occurred while calculating recommendations.";
-                resultElement.className = 'error';
-            }
-        }, 100);
-    } catch (error) {
-        console.error('Error in getRecommendations:', error);
-        resultElement.textContent = "An unexpected error occurred.";
-        resultElement.className = 'error';
+    const selectElement = document.getElementById('user-select');
+    const userId = parseInt(selectElement.value, 10);
+
+    if (isNaN(userId)) {
+        renderList('user-based-result', [], 'Please select a user first.');
+        renderList('item-based-result', [], 'Please select a user first.');
+        return;
     }
+
+    renderList('user-based-result', getUserBasedRecommendations(userId));
+    renderList('item-based-result', getItemBasedRecommendations(userId));
+}
+
+// Provided — render a list of { title, score } into the given element
+function renderList(elementId, items, message) {
+    const el = document.getElementById(elementId);
+
+    if (message) {
+        el.innerHTML = `<p>${message}</p>`;
+        return;
+    }
+
+    if (!items || items.length === 0) {
+        el.innerHTML = '<p>No recommendations. (Implement the TODO above.)</p>';
+        return;
+    }
+
+    const entries = items
+        .map(item => `<li>${item.title} &mdash; ${Number(item.score).toFixed(3)}</li>`)
+        .join('');
+    el.innerHTML = `<ul>${entries}</ul>`;
 }
