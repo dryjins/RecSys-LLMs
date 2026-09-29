@@ -1,11 +1,13 @@
 /**
  * week4/script.js — Association-rule mining starter (HW4).
  *
- * This module fetches the dictionary-encoded UCI Online Retail baskets from
- * `data/transactions.json` (via `DATA_URL` in `data.js`) at startup, decodes them
- * back into `{ stock, description }` items, renders a dataset summary, and wires
- * two slider controls ("minimum support" and "minimum confidence") plus a
- * "Run rules" button.
+ * This is a plain (classic) script, NOT an ES module. `week4/transactions.js`
+ * (loaded first, in a regular <script> tag) assigns the dictionary-encoded UCI
+ * Online Retail baskets to `window.HW4`. This file reads that global, decodes
+ * the integer-index baskets back into `{ stock, description }` items, renders a
+ * dataset summary, and wires two slider controls ("minimum support" and
+ * "minimum confidence") plus a "Run rules" button. Because nothing is fetched,
+ * the page works from a `file://` URL with no server.
  *
  * WHAT YOU MUST IMPLEMENT (`TODO(hw4)`):
  *   1. `findFrequentItemsets` — mine frequent itemsets (Apriori or equivalent)
@@ -25,27 +27,48 @@
  * @module week4/script
  */
 
-import { DATA_URL, N_BASKETS, N_ITEMS, dataset_provenance } from "./data.js";
+// Defensive guard: `transactions.js` must run before this file. If `window.HW4`
+// is missing (for example because `transactions.js` was not copied next to
+// `index.html`), fail loudly and visibly instead of throwing an opaque error.
+if (typeof window === "undefined" || typeof window.HW4 === "undefined") {
+  if (typeof document !== "undefined") {
+    document.body.innerHTML =
+      '<p style="padding:2rem;font-family:sans-serif">' +
+      "Failed to load `transactions.js`. Make sure it sits next to `index.html` " +
+      "and is loaded before `script.js`.</p>";
+  }
+  throw new Error(
+    "window.HW4 is not defined — load transactions.js before script.js.",
+  );
+}
+
+/** The raw dataset global assigned by `week4/transactions.js`. */
+const data = window.HW4;
 
 /**
- * Baskets fetched from `DATA_URL`, or `[]` until the fetch resolves. Each basket
- * is an array of `{ stock, description }` items, matching the fixture shape used
- * by the tests.
+ * Baskets decoded from the dictionary-encoded arrays in `window.HW4`. Each
+ * basket is an array of `{ stock, description }` items, matching the fixture
+ * shape used by the tests.
  *
  * @type {Array<Array<Item>>}
  */
-let TRANSACTIONS = [];
+const TRANSACTIONS = data.baskets.map((basket) =>
+  basket.map((stockIndex) => ({
+    stock: data.stocks[stockIndex],
+    description: data.descriptions[stockIndex],
+  })),
+);
 
 /**
- * Dataset-wide inverted index, built once the dataset has been fetched. `null`
- * until then, so the UI can tell "still loading" from "loaded".
+ * Dataset-wide inverted index, built once at startup. `null` until `init()` has
+ * run, so the UI can tell "still loading" from "loaded".
  *
  * @type {BasketIndex|null}
  */
 let DATASET_INDEX = null;
 
 /** Number of baskets (the `N` used by support and lift). */
-let N = N_BASKETS;
+let N = data.N_BASKETS;
 
 /**
  * @typedef {Object} Item
@@ -94,7 +117,7 @@ function stockOf(item) {
  * @param {Array<Array<Item|string>>} baskets
  * @returns {BasketIndex}
  */
-export function buildIndex(baskets) {
+function buildIndex(baskets) {
   /** @type {Map<string, Set<number>>} */
   const byStock = new Map();
   baskets.forEach((basket, basketId) => {
@@ -139,7 +162,7 @@ function asIndex(basketsOrIndex) {
  * @param {Array<string|Item>} stocks
  * @returns {number} count(A) for a single-element `stocks`, count(A union B) for two.
  */
-export function countItemset(basketsOrIndex, stocks) {
+function countItemset(basketsOrIndex, stocks) {
   const index = asIndex(basketsOrIndex);
   const unique = [...new Set(stocks.map(stockOf))];
   if (unique.length === 0) return 0;
@@ -160,7 +183,7 @@ export function countItemset(basketsOrIndex, stocks) {
  * @param {string|Item} stock
  * @returns {number}
  */
-export function countItem(basketsOrIndex, stock) {
+function countItem(basketsOrIndex, stock) {
   return countItemset(basketsOrIndex, [stock]);
 }
 
@@ -172,7 +195,7 @@ export function countItem(basketsOrIndex, stock) {
  * @param {string|Item} stockB
  * @returns {number}
  */
-export function countPair(basketsOrIndex, stockA, stockB) {
+function countPair(basketsOrIndex, stockA, stockB) {
   return countItemset(basketsOrIndex, [stockA, stockB]);
 }
 
@@ -183,7 +206,7 @@ export function countPair(basketsOrIndex, stockA, stockB) {
  * @param {Array<string|Item>} rawItems
  * @returns {Array<string>} unique stock codes, in first-appearance order.
  */
-export function dedupeBasket(rawItems) {
+function dedupeBasket(rawItems) {
   const seen = new Set();
   const out = [];
   for (const item of rawItems) {
@@ -203,7 +226,7 @@ export function dedupeBasket(rawItems) {
  * @param {number} n          number of baskets
  * @returns {{value: number, defined: boolean}} `defined` is false when `n === 0`.
  */
-export function computeSupport(jointCount, n) {
+function computeSupport(jointCount, n) {
   if (!n) return { value: 0, defined: false };
   return { value: jointCount / n, defined: true };
 }
@@ -218,7 +241,7 @@ export function computeSupport(jointCount, n) {
  * @param {number} antecedentCount count(A)
  * @returns {{value: number, defined: boolean}}
  */
-export function computeConfidence(jointCount, antecedentCount) {
+function computeConfidence(jointCount, antecedentCount) {
   if (!antecedentCount) return { value: 0, defined: false };
   return { value: jointCount / antecedentCount, defined: true };
 }
@@ -234,7 +257,7 @@ export function computeConfidence(jointCount, antecedentCount) {
  * @param {number} n               number of baskets
  * @returns {{value: number, defined: boolean}}
  */
-export function computeLift(confidence, consequentCount, n) {
+function computeLift(confidence, consequentCount, n) {
   if (!confidence || !confidence.defined || !n) return { value: 0, defined: false };
   const baseline = consequentCount / n;
   if (!baseline) return { value: 0, defined: false };
@@ -248,7 +271,7 @@ export function computeLift(confidence, consequentCount, n) {
  * @param {number} minConfidence minimum confidence fraction
  * @returns {{ok: boolean, errors: string[]}}
  */
-export function validateThresholds(minSupport, minConfidence) {
+function validateThresholds(minSupport, minConfidence) {
   const errors = [];
   for (const [label, value] of [
     ["Minimum support", minSupport],
@@ -279,7 +302,7 @@ export function validateThresholds(minSupport, minConfidence) {
  * @param {number} minSupport minimum support fraction in `(0, 1]`
  * @returns {Array<{items: string[], count: number, support: number}>} frequent itemsets
  */
-export function findFrequentItemsets(transactions, minSupport) {
+function findFrequentItemsets(transactions, minSupport) {
   // TODO(hw4): implement Apriori (or an equivalent frequent-itemset miner).
   throw new Error("TODO(hw4): findFrequentItemsets is not implemented yet.");
 }
@@ -296,7 +319,7 @@ export function findFrequentItemsets(transactions, minSupport) {
  * @param {number} minConfidence minimum confidence fraction in `(0, 1]`
  * @returns {Rule[]}
  */
-export function generateRules(frequentItemsets, minConfidence) {
+function generateRules(frequentItemsets, minConfidence) {
   // TODO(hw4): generate candidate rules from each frequent itemset, compute
   // confidence in both directions, then keep the rules that pass the threshold.
   throw new Error("TODO(hw4): generateRules is not implemented yet.");
@@ -324,7 +347,7 @@ export function generateRules(frequentItemsets, minConfidence) {
  *
  * @returns {{n: number, baskets: string[][], itemCounts: Object<string, number>, rules: Array<Object>}}
  */
-export function tinyWorkedExample() {
+function tinyWorkedExample() {
   const baskets = [
     ["bread", "milk", "jam", "ham"],
     ["bread", "milk", "jam"],
@@ -433,7 +456,7 @@ function enrichRule(rule, index) {
  * @param {BasketIndex} index
  * @returns {Rule}
  */
-export function reverseRule(rule, index) {
+function reverseRule(rule, index) {
   return enrichRule(
     {
       antecedent: rule.consequent,
@@ -482,7 +505,7 @@ function formatItemset(stocks, index) {
 
 /**
  * Lookup a stock code's canonical description, falling back to the code. Filled
- * by `loadDataset()` once the JSON has been fetched.
+ * by `primeDescriptions()` once `init()` runs.
  */
 const descriptionByStock = new Map();
 
@@ -510,7 +533,7 @@ function describe(stock, index) {
  * @param {HTMLElement|null} container
  * @returns {void}
  */
-export function renderDatasetSummary(index, container) {
+function renderDatasetSummary(index, container) {
   const target = container || document.getElementById("dataset-summary-body");
   if (!target) return;
 
@@ -540,7 +563,7 @@ export function renderDatasetSummary(index, container) {
         <tbody>${rows}</tbody>
       </table>
     </details>
-    <p class="provenance">${escapeHtml(dataset_provenance)}</p>
+    <p class="provenance">${escapeHtml(data.dataset_provenance)}</p>
   `;
 }
 
@@ -553,7 +576,7 @@ export function renderDatasetSummary(index, container) {
  * @param {HTMLElement|null} [container]
  * @returns {void}
  */
-export function renderResults(rules, index, container) {
+function renderResults(rules, index, container) {
   const target = container || document.getElementById("results");
   if (!target) return;
   const activeIndex = index || DATASET_INDEX;
@@ -627,7 +650,7 @@ export function renderResults(rules, index, container) {
  * @param {HTMLElement|null} [container]
  * @returns {void}
  */
-export function renderRuleDetail(rule, index, container) {
+function renderRuleDetail(rule, index, container) {
   const target = container || document.getElementById("rule-detail");
   if (!target) return;
   const activeIndex = index || DATASET_INDEX;
@@ -683,7 +706,7 @@ export function renderRuleDetail(rule, index, container) {
  * @param {HTMLElement|null} [container]
  * @returns {void}
  */
-export function renderWorkedExample(example, container) {
+function renderWorkedExample(example, container) {
   const target = container || document.getElementById("worked-example");
   if (!target) return;
   const rows = example.rules
@@ -750,7 +773,7 @@ const TODO_MARKER = "TODO(hw4)";
  * @param {HTMLElement|null} [logElement] element that receives the text log
  * @returns {{passed: number, failed: number, pending: number, checks: Array<Object>}}
  */
-export function runTests(logElement) {
+function runTests(logElement) {
   const example = tinyWorkedExample();
   const checks = [];
   const basketObjects = example.baskets;
@@ -916,68 +939,17 @@ export function runTests(logElement) {
 // ---------------------------------------------------------------------------
 
 /**
- * Fetch the dictionary-encoded dataset and decode it back into the shape the
- * rest of this module expects: an array of baskets, where each basket is a list
- * of `{ stock, description }` items.
+ * Populate the stock -> description lookup used by the renderers from the
+ * dictionary-encoded tables embedded in `window.HW4`.
  *
- * Throws when the fetch fails — for example when the page was opened from a
- * `file://` URL, where browsers block the request — so the caller can render an
- * explicit error instead of leaving the page silently empty.
- *
- * @returns {Promise<{N_BASKETS: number, N_ITEMS: number, descriptions: string[], baskets: Array<Array<{stock: string, description: string}>>}>}
- */
-export async function loadDataset() {
-  const response = await fetch(DATA_URL);
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status} ${response.statusText} for ${DATA_URL}`);
-  }
-  const payload = await response.json();
-  const { stocks, descriptions, baskets } = payload;
-  const decoded = baskets.map((basket) =>
-    basket.map((stockIndex) => ({
-      stock: stocks[stockIndex],
-      description: descriptions[stockIndex],
-    })),
-  );
-  for (const basket of decoded) {
-    for (const item of basket) {
-      if (!descriptionByStock.has(item.stock)) {
-        descriptionByStock.set(item.stock, item.description);
-      }
-    }
-  }
-  return {
-    N_BASKETS: payload.N_BASKETS,
-    N_ITEMS: payload.N_ITEMS,
-    descriptions,
-    baskets: decoded,
-  };
-}
-
-/**
- * Render an explicit, visible error when the dataset cannot be fetched, rather
- * than failing silently.
- *
- * @param {unknown} error
  * @returns {void}
  */
-function showLoadError(error) {
-  const message =
-    "Could not load dataset — serve via HTTP (e.g. `python3 -m http.server`) and reload.";
-  const paragraph = document.createElement("p");
-  paragraph.className = "load-error";
-  paragraph.textContent = message;
-  const summaryBody = document.getElementById("dataset-summary-body");
-  if (summaryBody) {
-    summaryBody.replaceChildren(paragraph);
-  } else {
-    document.body.appendChild(paragraph);
-  }
-  const status = document.getElementById("status");
-  if (status) {
-    const detail = error && error.message ? ` (${error.message})` : "";
-    status.textContent = `${message}${detail}`;
-  }
+function primeDescriptions() {
+  data.stocks.forEach((stock, i) => {
+    if (!descriptionByStock.has(stock)) {
+      descriptionByStock.set(stock, data.descriptions[i]);
+    }
+  });
 }
 
 /**
@@ -1013,8 +985,7 @@ function runPipeline() {
   const status = document.getElementById("status");
   if (!DATASET_INDEX) {
     if (status) {
-      status.textContent =
-        "Dataset not loaded yet — serve the page over HTTP and reload.";
+      status.textContent = "Dataset not ready yet — reload the page.";
     }
     return;
   }
@@ -1039,15 +1010,15 @@ function runPipeline() {
 }
 
 /**
- * Wire the controls once the DOM is ready, then fetch the dataset and render it.
+ * Wire the controls once the DOM is ready, then build the dataset index from the
+ * baskets already decoded from `window.HW4` and render the summary.
  *
- * The event listeners are attached before the fetch so that "Run tests" (which
- * only needs the in-module fixture) still works even when the dataset cannot be
- * loaded.
+ * The data is already in memory (embedded by `transactions.js`), so there is no
+ * fetch and no error path beyond the `window.HW4` guard at the top of this file.
  *
- * @returns {Promise<void>}
+ * @returns {void}
  */
-async function init() {
+function init() {
   renderWorkedExample(tinyWorkedExample());
   syncThresholdLabels();
 
@@ -1063,19 +1034,12 @@ async function init() {
   if (testButton) testButton.addEventListener("click", () => runTests());
 
   const status = document.getElementById("status");
-  let dataset;
-  try {
-    dataset = await loadDataset();
-  } catch (error) {
-    showLoadError(error);
-    return;
-  }
-  TRANSACTIONS = dataset.baskets;
+  primeDescriptions();
   N = TRANSACTIONS.length;
   DATASET_INDEX = buildIndex(TRANSACTIONS);
   renderDatasetSummary(DATASET_INDEX);
   if (status) {
-    status.textContent = `Dataset ready: ${N.toLocaleString("en-US")} baskets, ${N_ITEMS.toLocaleString("en-US")} distinct items. Implement the two TODO(hw4) functions, then press “Run rules”.`;
+    status.textContent = `Dataset ready: ${N.toLocaleString("en-US")} baskets, ${data.N_ITEMS.toLocaleString("en-US")} distinct items. Implement the two TODO(hw4) functions, then press “Run rules”.`;
   }
 }
 

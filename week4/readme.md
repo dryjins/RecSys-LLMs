@@ -31,50 +31,38 @@ By the end of this assignment you should be able to:
 
 ## 2. Run instructions
 
-**No build step and no external libraries are required.** The page is plain
-vanilla HTML/CSS/JavaScript, but it **must be served over HTTP** — see below.
+**Open `index.html` in a modern browser. No build, no server, no install.**
+Double-click `week4/index.html` (or use *File → Open*). The page is plain vanilla
+HTML/CSS/JavaScript and loads entirely from local files.
 
-The dataset is *not* embedded in the JavaScript. `week4/data.js` only exports the
-dataset URL, the two counts, and the provenance string; `week4/script.js` fetches
-`week4/data/transactions.json` at startup and decodes it in the browser. Opening
-`index.html` directly works for neither reason: browsers block ES-module imports
-from the `file://` origin, *and* they block `fetch()` of a local JSON file in most
-configurations. **Do not open `index.html` by double-clicking it — serve it over
-HTTP instead.** (If the fetch fails, the page shows an explicit message telling
-you to serve it over HTTP.)
+The dataset is embedded in `week4/transactions.js`, which is a **plain (classic)
+script — not an ES module**. It assigns the dictionary-encoded dataset to
+`window.HW4`, and `week4/script.js` decodes it. Nothing is fetched and no module
+loader is used, so the page works from a `file://` URL. **Keep
+`week4/transactions.js` next to `index.html`:** the page loads
+`<script src="transactions.js">` first and `<script src="script.js">` second, and
+if `transactions.js` is missing it prints an explicit
+“Failed to load `transactions.js`” message.
 
-1. **Serve the directory over HTTP** (or deploy it to GitHub Pages). Start the
-   server from the repository root, then browse to the `week4/` sub-path:
+> If you have a browser-blocker that disables scripts, allow them for this
+> directory.
 
-   ```bash
-   # from the repository root
-   python3 -m http.server 8000
-   # then open http://localhost:8000/week4/ in a modern browser
-   ```
-
-   Any static server works, for example `npx serve .` (also run from the
-   repository root) or `python3 -m http.server` started inside `week4/` itself
-   (in which case open `http://localhost:8000/`).
-
-2. On the page you will see the **dataset summary** (total baskets, distinct
-   items, top items), a **Controls** sidebar, the **Rules** table, the **Selected
-   rule** detail panel, and the **Worked example** readout.
-3. Press **Run tests** first. The self-checks cover the metric helpers, the
+1. Open `index.html`. On the page you will see the **dataset summary** (total
+   baskets, distinct items, top items), a **Controls** sidebar, the **Rules**
+   table, the **Selected rule** detail panel, and the **Worked example** readout.
+2. Press **Run tests** first. The self-checks cover the metric helpers, the
    five-basket worked example, duplicate handling, empty results, invalid
    thresholds, and the zero-denominator guard. The two `TODO(hw4)` checks report
    `PENDING` until you implement the miner, then they must report `PASS`.
-4. Set the two sliders (minimum support, minimum confidence) and press
+3. Set the two sliders (minimum support, minimum confidence) and press
    **Run rules**.
-5. Click a row in the Rules table to open it in the detail panel, then press
+4. Click a row in the Rules table to open it in the detail panel, then press
    **Reverse direction (B → A)** to compare `A → B` with `B → A`.
 
-`week4/data/transactions.json` is a dictionary-encoded, compact (no indentation)
-**plain UTF-8** JSON file of about 1.7 MB. It is written as plain text on purpose
-so any static server can compress it: `python3 -m http.server` does **not**
-gzip, but GitHub Pages, `npx serve`, nginx, and most other static hosts apply
-gzip or Brotli automatically (a typical gzip transfer is a few hundred KB). The
-first load therefore fetches and parses the JSON once, then everything runs in
-memory.
+`week4/transactions.js` is a compact (no indentation) plain UTF-8 script of about
+1.7 MB. It holds the dictionary-encoded baskets — parallel `stocks` /
+`descriptions` item tables plus integer-index baskets — and the page decodes them
+in memory at load time.
 
 ---
 
@@ -104,8 +92,8 @@ memory.
   - Baskets are grouped by `InvoiceNo`. Baskets with fewer than two distinct items
     are dropped because they cannot yield a rule. Baskets are **not** split by
     customer.
-- The full provenance string is exported as `dataset_provenance` in
-  `week4/data.js` and is displayed in the page's dataset summary.
+- The full provenance string is available as `window.HW4.dataset_provenance` (set
+  by `week4/transactions.js`) and is displayed in the page's dataset summary.
 
 ---
 
@@ -139,8 +127,8 @@ Implement the two `TODO(hw4)` functions in `week4/script.js`:
    of printing `Infinity` or `NaN`. (With well-formed generated rules this cannot
    happen — implement it defensively anyway.)
 
-Do not change `data.js`, `index.html`, or `style.css` beyond what is needed to
-make your implementation work. Keep all code and comments in English.
+Do not change `transactions.js`, `index.html`, or `style.css` beyond what is
+needed to make your implementation work. Keep all code and comments in English.
 
 ### 4.2 Business & Algorithmic Analysis
 
@@ -184,7 +172,8 @@ Answer in the course report (see §7), using numbers produced by your own code:
 ## 5. Definitions
 
 For an itemset `X`, let `count(X)` be the number of baskets containing every item
-in `X`, and let `N` be the total number of baskets (`N_BASKETS` in `data.js`).
+in `X`, and let `N` be the total number of baskets (`window.HW4.N_BASKETS` in
+`transactions.js`).
 
 ```
 support(A → B)    = count(A ∪ B) / N
@@ -234,8 +223,7 @@ Submit the **modified `week4/` directory** containing:
 
 | File | Role |
 |---|---|
-| `week4/data.js` | dataset metadata + the JSON URL (provided, do not modify) |
-| `week4/data/transactions.json` | dictionary-encoded dataset, fetched at runtime (provided, do not modify) |
+| `week4/transactions.js` | dictionary-encoded dataset embedded as a plain script (provided, do not modify) |
 | `week4/script.js` | your implementation of the two `TODO(hw4)` functions |
 | `week4/index.html` | page structure (provided) |
 | `week4/style.css` | styling (provided) |
