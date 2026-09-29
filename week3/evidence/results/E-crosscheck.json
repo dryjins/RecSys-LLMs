@@ -1,0 +1,271 @@
+{
+ "tolerance": 1e-09,
+ "pairs": [
+  {
+   "userId": 1,
+   "itemId": 102,
+   "actual": 2,
+   "selectionMatches": true,
+   "userBased": {
+    "javascript": 2.910690372,
+    "python": 2.910690372,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   },
+   "itemBased": {
+    "javascript": 3.721979464,
+    "python": 3.721979464,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   }
+  },
+  {
+   "userId": 19,
+   "itemId": 692,
+   "actual": 3,
+   "selectionMatches": true,
+   "userBased": {
+    "javascript": 3.731437358,
+    "python": 3.731437358,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   },
+   "itemBased": {
+    "javascript": 3.500266645,
+    "python": 3.500266645,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   }
+  },
+  {
+   "userId": 50,
+   "itemId": 123,
+   "actual": 4,
+   "selectionMatches": true,
+   "userBased": {
+    "javascript": 3.658728449,
+    "python": 3.658728449,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   },
+   "itemBased": {
+    "javascript": 2.848739021,
+    "python": 2.848739021,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   }
+  },
+  {
+   "userId": 100,
+   "itemId": 1237,
+   "actual": 3,
+   "selectionMatches": true,
+   "userBased": {
+    "javascript": 3.604756077,
+    "python": 3.604756077,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   },
+   "itemBased": {
+    "javascript": 3.705854016,
+    "python": 3.705854016,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   }
+  },
+  {
+   "userId": 200,
+   "itemId": 931,
+   "actual": 3,
+   "selectionMatches": true,
+   "userBased": {
+    "javascript": 2.20442918,
+    "python": 2.20442918,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   },
+   "itemBased": {
+    "javascript": 2.902251563,
+    "python": 2.902251563,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   }
+  },
+  {
+   "userId": 300,
+   "itemId": 1012,
+   "actual": 4,
+   "selectionMatches": true,
+   "userBased": {
+    "javascript": 4.122771697,
+    "python": 4.122771697,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   },
+   "itemBased": {
+    "javascript": 3.991542246,
+    "python": 3.991542246,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   }
+  },
+  {
+   "userId": 405,
+   "itemId": 1591,
+   "actual": 1,
+   "selectionMatches": true,
+   "userBased": {
+    "javascript": 1.835597826,
+    "python": 1.835597826,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   },
+   "itemBased": {
+    "javascript": 2.769338273,
+    "python": 2.769338273,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   }
+  },
+  {
+   "userId": 500,
+   "itemId": 313,
+   "actual": 3,
+   "selectionMatches": true,
+   "userBased": {
+    "javascript": 4.305771747,
+    "python": 4.305771747,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   },
+   "itemBased": {
+    "javascript": 3.665859274,
+    "python": 3.665859274,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   }
+  },
+  {
+   "userId": 600,
+   "itemId": 1274,
+   "actual": 2,
+   "selectionMatches": true,
+   "userBased": {
+    "javascript": 1.137021762,
+    "python": 1.137021762,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   },
+   "itemBased": {
+    "javascript": 1.855776021,
+    "python": 1.855776021,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   }
+  },
+  {
+   "userId": 700,
+   "itemId": 318,
+   "actual": 4,
+   "selectionMatches": true,
+   "userBased": {
+    "javascript": 4.554489272,
+    "python": 4.554489272,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   },
+   "itemBased": {
+    "javascript": 4.105503168,
+    "python": 4.105503168,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   }
+  },
+  {
+   "userId": 800,
+   "itemId": 864,
+   "actual": 4,
+   "selectionMatches": true,
+   "userBased": {
+    "javascript": 3.14245694,
+    "python": 3.14245694,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   },
+   "itemBased": {
+    "javascript": 3.309160839,
+    "python": 3.309160839,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   }
+  },
+  {
+   "userId": 900,
+   "itemId": 602,
+   "actual": 1,
+   "selectionMatches": true,
+   "userBased": {
+    "javascript": 2.56489533,
+    "python": 2.56489533,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   },
+   "itemBased": {
+    "javascript": 2.842219178,
+    "python": 2.842219178,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   }
+  },
+  {
+   "userId": 943,
+   "itemId": 234,
+   "actual": 3,
+   "selectionMatches": true,
+   "userBased": {
+    "javascript": 4.072222158,
+    "python": 4.072222158,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   },
+   "itemBased": {
+    "javascript": 3.755452169,
+    "python": 3.755452169,
+    "delta": 0.0,
+    "agrees": true,
+    "fallbackAgrees": true
+   }
+  }
+ ],
+ "worstUserBasedDelta": 0.0,
+ "worstItemBasedDelta": 0.0,
+ "checkedPairs": 13,
+ "failures": [],
+ "passed": true,
+ "minimumRequiredPairs": 10
+}

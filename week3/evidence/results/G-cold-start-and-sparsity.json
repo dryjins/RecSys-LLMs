@@ -1,0 +1,99 @@
+{
+ "section": "G-cold-start-and-sparsity",
+ "facts": {
+  "newUser": {
+   "predictedRating": 3.52986,
+   "baseline": 3.52986,
+   "globalRatingMean": 3.52986,
+   "fallbackReason": "cold-start-user"
+  },
+  "newItem": {
+   "predictedRating": 3.610294117647059,
+   "baseline": 3.610294117647059,
+   "userMean": 3.610294117647059,
+   "fallbackReason": "cold-start-item"
+  },
+  "disjointItemPairsFound": 38,
+  "oneOverlap": {
+   "itemA": 1,
+   "itemB": 361,
+   "rawCosine": 1,
+   "similarity": 0.038461538461538464,
+   "evidenceLabel": "LOW"
+  },
+  "numericViolations": 0,
+  "sparsity": {
+   "cells": 1588752,
+   "observed": 100000,
+   "density": 0.062942,
+   "sparsity": 0.937058,
+   "lowSupportItemsUnder5": 333,
+   "singletonItems": 141,
+   "medianRatersPerItem": 27,
+   "p95RatersPerItem": 229.84999999999945,
+   "maxRatersPerItem": 583
+  }
+ },
+ "summary": {
+  "passed": 11,
+  "failed": 0,
+  "total": 11,
+  "checks": [
+   {
+    "name": "new user falls back to the global mean",
+    "passed": true,
+    "detail": "cold-start-user"
+   },
+   {
+    "name": "new item falls back to the user mean",
+    "passed": true,
+    "detail": "cold-start-item"
+   },
+   {
+    "name": "user and item both cold falls back to the global mean",
+    "passed": true,
+    "detail": "cold-start-item"
+   },
+   {
+    "name": "no co-ratings gives similarity 0 and zero overlap",
+    "passed": true,
+    "detail": "{\"similarity\":0,\"rawCosine\":0,\"overlap\":0}"
+   },
+   {
+    "name": "zero-overlap item pairs exist and score 0",
+    "passed": true,
+    "detail": "38 pairs"
+   },
+   {
+    "name": "a one-rating overlap is strongly shrunk",
+    "passed": true,
+    "detail": "raw 1 -> 0.038461538461538464"
+   },
+   {
+    "name": "a one-rating overlap is labelled LOW",
+    "passed": true,
+    "detail": "LOW"
+   },
+   {
+    "name": "no valid contributors gives an explicit baseline fallback",
+    "passed": true,
+    "detail": "{\"predictedRating\":3.2,\"baseline\":3.2,\"usedFallback\":true,\"fallbackReason\":\"no-contributors\",\"contributorCount\":0,\"denominator\":0,\"overlaps\":[]}"
+   },
+   {
+    "name": "no NaN, Infinity or unexplained zero in any prediction",
+    "passed": true,
+    "detail": "clean"
+   },
+   {
+    "name": "sparsity is quantified",
+    "passed": true,
+    "detail": "density 0.062942 sparsity 0.937058"
+   },
+   {
+    "name": "low-support items exist and are counted",
+    "passed": true,
+    "detail": "333 items with fewer than 5 raters"
+   }
+  ]
+ }
+}
