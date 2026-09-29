@@ -31,33 +31,14 @@ By the end of this assignment you should be able to:
 
 ## 2. Run instructions
 
-**Open `index.html` in a modern browser. No build, no server, no install.**
-Double-click `week4/index.html` (or use *File → Open*). The page is plain vanilla
-HTML/CSS/JavaScript and loads entirely from local files.
+Open `week4/index.html` in a modern browser. No build, no server, no install. Keep
+`week4/transactions.js` next to `index.html` — it holds the dataset; if it is
+missing, the page shows a "Failed to load `transactions.js`" message.
 
-The dataset is embedded in `week4/transactions.js`, which is a **plain (classic)
-script — not an ES module**. It assigns the dictionary-encoded dataset to
-`window.HW4`, and `week4/script.js` decodes it. Nothing is fetched and no module
-loader is used, so the page works from a `file://` URL. **Keep
-`week4/transactions.js` next to `index.html`:** the page loads
-`<script src="transactions.js">` first and `<script src="script.js">` second, and
-if `transactions.js` is missing it prints an explicit
-“Failed to load `transactions.js`” message.
-
-> If you have a browser-blocker that disables scripts, allow them for this
-> directory.
-
-1. Open `index.html`. On the page you will see the **dataset summary** (total
-   baskets, distinct items, top items), a **Controls** sidebar, the **Rules**
-   table, the **Selected rule** detail panel, and the **Worked example** readout.
-2. Press **Run tests** first. The self-checks cover the metric helpers, the
-   five-basket worked example, duplicate handling, empty results, invalid
-   thresholds, and the zero-denominator guard. The two `TODO(hw4)` checks report
-   `PENDING` until you implement the miner, then they must report `PASS`.
-3. Set the two sliders (minimum support, minimum confidence) and press
-   **Run rules**.
-4. Click a row in the Rules table to open it in the detail panel, then press
-   **Reverse direction (B → A)** to compare `A → B` with `B → A`.
+The page shows a dataset summary and a **Controls** sidebar with the minimum
+support and confidence sliders. Press **Run tests** to check the metric helpers,
+then **Run rules**. Click a rule to open it in the detail panel, where **Reverse
+direction (B → A)** compares `A → B` with `B → A`.
 
 ---
 
