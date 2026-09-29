@@ -59,11 +59,6 @@ if `transactions.js` is missing it prints an explicit
 4. Click a row in the Rules table to open it in the detail panel, then press
    **Reverse direction (B → A)** to compare `A → B` with `B → A`.
 
-`week4/transactions.js` is a compact (no indentation) plain UTF-8 script of about
-1.7 MB. It holds the dictionary-encoded baskets — parallel `stocks` /
-`descriptions` item tables plus integer-index baskets — and the page decodes them
-in memory at load time.
-
 ---
 
 ## 3. Dataset provenance
