@@ -12,19 +12,39 @@
         <p>Select a user, and we will recommend movies two ways: by similar users (User-Based CF) and by similar movies (Item-Based CF).</p>
 
         <div class="controls">
-            <select id="user-select">
-                <option value="" disabled selected>Select a user</option>
-            </select>
+            <label class="field" for="user-select">
+                <span class="field-label">User</span>
+                <select id="user-select">
+                    <option value="" disabled selected>Select a user</option>
+                </select>
+            </label>
+            <label class="field" for="movie-select">
+                <span class="field-label">Target movie (optional)</span>
+                <select id="movie-select">
+                    <option value="">No target movie (Top-5 only)</option>
+                </select>
+            </label>
             <button id="recommend-btn" onclick="getRecommendations()">Get Recommendations</button>
         </div>
+
+        <p id="status" class="status" role="status" aria-live="polite">Loading MovieLens 100K data...</p>
+
+        <section class="target-panel" aria-labelledby="target-heading">
+            <h2 id="target-heading">Target prediction</h2>
+            <div id="target-result">
+                <p class="muted">Select a target movie to compare a single predicted rating.</p>
+            </div>
+        </section>
 
         <div id="result-box">
             <div class="result-column">
                 <h2>User-Based CF</h2>
+                <p class="panel-lead">Because you are similar to other users, we recommend:</p>
                 <div id="user-based-result"><p>Please wait, loading data...</p></div>
             </div>
             <div class="result-column">
                 <h2>Item-Based CF</h2>
+                <p class="panel-lead">Because you liked the movies you rated, we recommend:</p>
                 <div id="item-based-result"><p>Please wait, loading data...</p></div>
             </div>
         </div>
