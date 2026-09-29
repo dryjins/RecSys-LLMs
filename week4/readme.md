@@ -20,8 +20,8 @@ By the end of this assignment you should be able to:
   downward-closure property: every subset of a frequent itemset is frequent.
 - Generate **candidate rules in both directions** (`A → B` and `B → A`) and show
   that confidence is *not* symmetric while lift *is*.
-- Filter a rule list with **support / confidence thresholds** and a **positive-lift**
-  filter, and describe how each filter changes the list of rules you keep.
+- Filter a rule list with **support / confidence thresholds**, keep only rules with
+  **lift > 1**, and describe how each filter changes the list of rules you keep.
 - Distinguish a **genuinely useful rule** from a **misleading one** that only looks
   good because one item is very frequent.
 - Reason about **association versus causation**, and propose a **validation plan**
@@ -79,9 +79,9 @@ direction (B → A)** compares `A → B` with `B → A`.
 
 Implement the seven `TODO(hw4)` stubs in `week4/script.js`:
 
-1. **Basket aggregation.** Implement `dedupeBasket(rawItems)` so a repeated item in
-   a raw basket is counted once (a basket behaves as a *set* of items), keeping
-   first-appearance order.
+1. **Basket construction.** Build an invoice–item basket matrix: implement
+   `dedupeBasket(rawItems)` so a repeated item in a raw basket is counted once (a
+   basket behaves as a *set* of items), keeping first-appearance order.
 2. **Counting.** Implement `countItemset(basketsOrIndex, stocks)` — the number of
    baskets containing every stock in `stocks`. `countItem` and `countPair` are
    provided thin wrappers over it.
@@ -89,13 +89,14 @@ Implement the seven `TODO(hw4)` stubs in `week4/script.js`:
    and `computeLift`, each returning `{ value, defined }` with `defined: false` on a
    zero denominator. Your numbers must match the definitions in §5 exactly.
 4. **Frequent itemsets.** Implement `findFrequentItemsets(transactions, minSupport)`
-   — Apriori or an equivalent level-wise miner — and return itemsets with their
-   counts and supports.
+   — Apriori, FP-Growth, or an equivalent frequent-itemset miner — and return
+   itemsets with their counts and supports.
 5. **Candidate rules.** Implement `generateRules(frequentItemsets, minConfidence)`.
    Split each frequent itemset into antecedent and consequent **both ways**, compute
    confidence for each direction, and keep the rules that pass the threshold.
 6. **Threshold filtering.** The two sliders feed `minSupport` and `minConfidence`.
-   The Rules table must contain exactly the rules that satisfy both.
+   The Rules table must contain exactly the rules that satisfy both; downstream
+   analysis retains only rules with **lift > 1**.
 7. **Selected-rule display.** Clicking a rule must show it in the detail panel, and
    the **Reverse direction** button must show `B → A` with its own recomputed
    confidence and lift. Demonstrate that confidence changes with direction while
@@ -124,12 +125,14 @@ Answer in the course report (see §7), using numbers produced by your own code:
    `85123A` — WHITE HANGING HEART T-LIGHT HOLDER — appears in 1,959 of 17,080
    baskets, i.e. 11.47%. It is frequent, but it is not in every basket, so
    "high confidence" alone does not imply an informative rule.)*
-3. **Threshold sensitivity.** Run the miner with at least two settings (for example
-   1% vs 3% support; 30% vs 60% confidence) and report how the number of frequent
-   itemsets and rules changes. Explain the direction of the effect in terms of
-   downward closure.
-4. **Cross-sell / bundle use case with a limitation.** Describe one concrete
-   bundle or "customers who bought A also bought B" feature you would ship, and
+3. **Threshold trade-off.** State and justify the minimum support and confidence
+   thresholds you actually chose for your final rule table. Then run the miner with
+   at least two settings (for example 1% vs 3% support; 30% vs 60% confidence) and
+   report how the number of frequent itemsets and rules changes. Explain the
+   direction of the effect in terms of downward closure.
+4. **Cross-sell / bundle / placement use case with a limitation.** Describe one
+   concrete bundle, product-placement, or "customers who bought A also bought B"
+   feature you would ship, and
    state its most important limitation (sparsity of long baskets, seasonality,
    wholesale-vs-retail mix in this dataset, or the fact that a rule is a frequency
    statement about the observed period only).
