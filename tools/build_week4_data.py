@@ -302,10 +302,10 @@ def provenance_string(n_rows: int, n_baskets: int) -> str:
     """Return the human-readable provenance string shared by both artefacts."""
     return (
         "UCI Online Retail (dataset_id 352). Daqing Chen, Sai Liang Sain, Kun Guo "
-        "(2012). 541,909 raw rows cleaned to %d rows and %d baskets by removing "
+        "(2012). 541,909 raw rows cleaned to {:,} rows and {:,} baskets by removing "
         "cancellations, negative quantities/prices, blank descriptions, non-product "
         "codes, and single-item baskets."
-    ) % (n_rows, n_baskets)
+    ).format(n_rows, n_baskets)
 
 
 def write_transactions_js(path: str, n_rows: int, baskets, n_items: int) -> int:

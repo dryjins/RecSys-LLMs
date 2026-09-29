@@ -1002,10 +1002,15 @@ function runPipeline() {
     renderResults(rules, DATASET_INDEX);
     if (status) status.textContent = `Done — ${rules.length} rule(s) at support \u2265 ${(minSupport * 100).toFixed(1)}% and confidence \u2265 ${(minConfidence * 100).toFixed(0)}%.`;
   } catch (error) {
-    renderResults([], DATASET_INDEX);
-    if (status) {
-      status.textContent = String(error && error.message ? error.message : error);
+    const message = String(error && error.message ? error.message : error);
+    const resultsEl = document.getElementById("results");
+    if (resultsEl) {
+      resultsEl.innerHTML =
+        '<p class="empty-state">Run failed &mdash; the rule miner did not complete. ' +
+        "Implement the two <code>TODO(hw4)</code> functions, then press &ldquo;Run rules&rdquo;. " +
+        `Error: ${escapeHtml(message)}</p>`;
     }
+    if (status) status.textContent = message;
   }
 }
 
