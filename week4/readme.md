@@ -77,28 +77,30 @@ direction (B → A)** compares `A → B` with `B → A`.
 
 ### 4.1 Implementation Task
 
-Implement the two `TODO(hw4)` functions in `week4/script.js`:
+Implement the seven `TODO(hw4)` stubs in `week4/script.js`:
 
-1. **Basket aggregation.** Confirm that `TRANSACTIONS` is an array of baskets and
-   that a basket behaves as a *set* of items (a repeated item must be counted
-   once). The provided `dedupeBasket` helper is the reference for this rule.
-2. **Support, confidence, lift.** Use the provided helpers
-   (`countItemset`, `countItem`, `countPair`, `computeSupport`,
-   `computeConfidence`, `computeLift`) or derive the metrics yourself — but your
-   numbers must match the definitions in §5 exactly.
-3. **Frequent itemsets.** Implement `findFrequentItemsets(transactions, minSupport)`
+1. **Basket aggregation.** Implement `dedupeBasket(rawItems)` so a repeated item in
+   a raw basket is counted once (a basket behaves as a *set* of items), keeping
+   first-appearance order.
+2. **Counting.** Implement `countItemset(basketsOrIndex, stocks)` — the number of
+   baskets containing every stock in `stocks`. `countItem` and `countPair` are
+   provided thin wrappers over it.
+3. **Support, confidence, lift.** Implement `computeSupport`, `computeConfidence`,
+   and `computeLift`, each returning `{ value, defined }` with `defined: false` on a
+   zero denominator. Your numbers must match the definitions in §5 exactly.
+4. **Frequent itemsets.** Implement `findFrequentItemsets(transactions, minSupport)`
    — Apriori or an equivalent level-wise miner — and return itemsets with their
    counts and supports.
-4. **Candidate rules.** Implement `generateRules(frequentItemsets, minConfidence)`.
+5. **Candidate rules.** Implement `generateRules(frequentItemsets, minConfidence)`.
    Split each frequent itemset into antecedent and consequent **both ways**, compute
    confidence for each direction, and keep the rules that pass the threshold.
-5. **Threshold filtering.** The two sliders feed `minSupport` and `minConfidence`.
+6. **Threshold filtering.** The two sliders feed `minSupport` and `minConfidence`.
    The Rules table must contain exactly the rules that satisfy both.
-6. **Selected-rule display.** Clicking a rule must show it in the detail panel, and
+7. **Selected-rule display.** Clicking a rule must show it in the detail panel, and
    the **Reverse direction** button must show `B → A` with its own recomputed
    confidence and lift. Demonstrate that confidence changes with direction while
    lift does not.
-7. **Zero-denominator handling.** If `count(A) === 0` or `count(B) === 0`, the
+8. **Zero-denominator handling.** If `count(A) === 0` or `count(B) === 0`, the
    metric is undefined; the detail panel must show an explicit inline note instead
    of printing `Infinity` or `NaN`. (With well-formed generated rules this cannot
    happen — implement it defensively anyway.)
@@ -219,7 +221,7 @@ Submit the **modified `week4/` directory** containing:
 | File | Role |
 |---|---|
 | `week4/transactions.js` | dictionary-encoded dataset embedded as a plain script (provided, do not modify) |
-| `week4/script.js` | your implementation of the two `TODO(hw4)` functions |
+| `week4/script.js` | your implementation of the `TODO(hw4)` stubs |
 | `week4/index.html` | page structure (provided) |
 | `week4/style.css` | styling (provided) |
 | `week4/readme.md` | this file |
