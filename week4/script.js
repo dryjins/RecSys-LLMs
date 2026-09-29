@@ -9,15 +9,21 @@
  * "minimum confidence") plus a "Run rules" button. Because nothing is fetched,
  * the page works from a `file://` URL with no server.
  *
- * WHAT YOU MUST IMPLEMENT (`TODO(hw4)`):
- *   1. `findFrequentItemsets` — mine frequent itemsets (Apriori or equivalent)
- *      down to the requested minimum support.
- *   2. `generateRules` — turn frequent itemsets into association rules, filter by
- *      minimum confidence, and return them in the `Rule` shape documented below.
+ * WHAT YOU MUST IMPLEMENT (`TODO(hw4)` — each stub throws until you write it):
+ *   1. `dedupeBasket`         — unique stock codes in a basket, first-appearance order.
+ *   2. `countItemset`         — baskets containing every requested stock (`0` if any is absent).
+ *   3. `computeSupport`       — support = count(A union B) / N, guarded when N = 0.
+ *   4. `computeConfidence`    — confidence = count(A union B) / count(A), guarded when count(A) = 0.
+ *   5. `computeLift`          — lift = confidence / (count(B) / N), guarded.
+ *   6. `findFrequentItemsets` — mine frequent itemsets (Apriori or equivalent).
+ *   7. `generateRules`        — turn frequent itemsets into both-direction rules.
  *
- * Everything else (item counting, support/confidence/lift arithmetic, the results
- * table, the rule detail panel, and the test harness) is provided for you. Reuse
- * the helpers instead of re-deriving the metrics by hand.
+ * PROVIDED for you (scaffolding): dataset loading/decoding from `window.HW4`, the
+ * inverted-index builder (`buildIndex` / `asIndex` / `indexCache`), the thin
+ * counting wrappers `countItem` / `countPair` (they call your `countItemset` and
+ * therefore also throw until it is implemented), threshold validation and slider
+ * readout, the DOM wiring, all formatting and rendering helpers, and the test
+ * harness. Leave the provided code as-is and implement only the stubs above.
  *
  * Metrics (see week4/readme.md for definitions):
  *   support(A -> B)    = count(A union B) / N
@@ -95,7 +101,10 @@ let N = data.N_BASKETS;
  */
 
 // ---------------------------------------------------------------------------
-// Reference helpers (provided — do not change the signatures)
+// Provided helpers and student stubs
+//
+// Functions carrying a `TODO(hw4)` marker are stubs you must implement; every
+// other function in this file is scaffolding and should be left as-is.
 // ---------------------------------------------------------------------------
 
 /**
@@ -158,22 +167,25 @@ function asIndex(basketsOrIndex) {
 /**
  * Count the baskets that contain every stock code in `stocks`.
  *
+ * TODO(hw4): build (or reuse) a basket -> stock inverted index, intersect the
+ * posting lists of the requested stocks, and return the size of the
+ * intersection.
+ *
+ * Contract:
+ *  - Accept either a ready-made index or a raw basket array. The provided
+ *    `asIndex` helper returns an index for either input.
+ *  - Return `0` when `stocks` is empty, and also when any requested stock is
+ *    absent from the dataset (never throw for an unknown stock).
+ *  - A stock repeated within one basket must be counted at most once. Dedupe the
+ *    request before intersecting.
+ *
  * @param {BasketIndex|Array<Array<Item|string>>} basketsOrIndex
  * @param {Array<string|Item>} stocks
  * @returns {number} count(A) for a single-element `stocks`, count(A union B) for two.
  */
 function countItemset(basketsOrIndex, stocks) {
-  const index = asIndex(basketsOrIndex);
-  const unique = [...new Set(stocks.map(stockOf))];
-  if (unique.length === 0) return 0;
-  const postings = unique.map((stock) => index.byStock.get(stock));
-  if (postings.some((posting) => !posting)) return 0;
-  postings.sort((a, b) => a.size - b.size);
-  let count = 0;
-  for (const basketId of postings[0]) {
-    if (postings.every((posting) => posting.has(basketId))) count += 1;
-  }
-  return count;
+  // TODO(hw4): intersect the posting lists and return the number of baskets.
+  throw new Error("TODO(hw4): countItemset is not implemented yet.");
 }
 
 /**
@@ -203,54 +215,71 @@ function countPair(basketsOrIndex, stockA, stockB) {
  * Remove repeated item identities from a raw basket, keeping first-appearance
  * order. A basket is a set of items, so duplicates must not be counted twice.
  *
+ * TODO(hw4): walk the input once, map each entry to its stock code with the
+ * provided `stockOf` helper, and return each distinct code the first time it
+ * appears.
+ *
+ * Contract:
+ *  - An empty input returns `[]`.
+ *  - The input may mix plain strings and `{ stock, description }` objects.
+ *  - Only the stock code is returned; the description is dropped.
+ *
  * @param {Array<string|Item>} rawItems
  * @returns {Array<string>} unique stock codes, in first-appearance order.
  */
 function dedupeBasket(rawItems) {
-  const seen = new Set();
-  const out = [];
-  for (const item of rawItems) {
-    const stock = stockOf(item);
-    if (!seen.has(stock)) {
-      seen.add(stock);
-      out.push(stock);
-    }
-  }
-  return out;
+  // TODO(hw4): return the unique stock codes in first-appearance order.
+  throw new Error("TODO(hw4): dedupeBasket is not implemented yet.");
 }
 
 /**
  * Compute support as `jointCount / n`.
+ *
+ * TODO(hw4): return the fraction and flag the `n === 0` case.
+ *
+ * Contract:
+ *  - `defined: true` with `value = jointCount / n` when `n > 0`.
+ *  - `defined: false` with `value = 0` when `n === 0` (never divide by zero).
  *
  * @param {number} jointCount count(A union B)
  * @param {number} n          number of baskets
  * @returns {{value: number, defined: boolean}} `defined` is false when `n === 0`.
  */
 function computeSupport(jointCount, n) {
-  if (!n) return { value: 0, defined: false };
-  return { value: jointCount / n, defined: true };
+  // TODO(hw4): support = jointCount / n, undefined when n === 0.
+  throw new Error("TODO(hw4): computeSupport is not implemented yet.");
 }
 
 /**
  * Compute confidence as `jointCount / antecedentCount`.
  *
- * Returns `defined: false` when the antecedent count is zero (a rule whose
- * left-hand side never occurs has no confidence).
+ * TODO(hw4): return the fraction and flag the `antecedentCount === 0` case.
+ *
+ * Contract:
+ *  - `defined: true` with `value = jointCount / antecedentCount` when count(A) > 0.
+ *  - `defined: false` with `value = 0` when count(A) === 0: a rule whose
+ *    left-hand side never occurs has no confidence.
  *
  * @param {number} jointCount      count(A union B)
  * @param {number} antecedentCount count(A)
  * @returns {{value: number, defined: boolean}}
  */
 function computeConfidence(jointCount, antecedentCount) {
-  if (!antecedentCount) return { value: 0, defined: false };
-  return { value: jointCount / antecedentCount, defined: true };
+  // TODO(hw4): confidence = jointCount / antecedentCount, undefined when count(A) === 0.
+  throw new Error("TODO(hw4): computeConfidence is not implemented yet.");
 }
 
 /**
  * Compute lift as `confidence / (consequentCount / n)`.
  *
- * Returns `defined: false` when the consequent never occurs or when the incoming
- * confidence is itself undefined (zero-denominator guard).
+ * TODO(hw4): divide the incoming confidence by the consequent's baseline rate.
+ *
+ * Contract:
+ *  - `defined: true` with `value = confidence.value / (consequentCount / n)`
+ *    when every input is usable.
+ *  - `defined: false` with `value = 0` when the incoming confidence is missing or
+ *    undefined, when `n === 0`, or when the baseline `consequentCount / n` is 0
+ *    (the consequent never occurs).
  *
  * @param {{value: number, defined: boolean}} confidence confidence(A -> B)
  * @param {number} consequentCount count(B)
@@ -258,10 +287,8 @@ function computeConfidence(jointCount, antecedentCount) {
  * @returns {{value: number, defined: boolean}}
  */
 function computeLift(confidence, consequentCount, n) {
-  if (!confidence || !confidence.defined || !n) return { value: 0, defined: false };
-  const baseline = consequentCount / n;
-  if (!baseline) return { value: 0, defined: false };
-  return { value: confidence.value / baseline, defined: true };
+  // TODO(hw4): lift = confidence / (consequentCount / n), guarded.
+  throw new Error("TODO(hw4): computeLift is not implemented yet.");
 }
 
 /**
@@ -286,17 +313,20 @@ function validateThresholds(minSupport, minConfidence) {
   return { ok: errors.length === 0, errors };
 }
 
-// ---------------------------------------------------------------------------
-// TODO(hw4): the two functions the assignment asks you to implement
-// ---------------------------------------------------------------------------
-
 /**
  * Mine all frequent itemsets whose support is at least `minSupport`.
  *
- * Implementation hint: Apriori (level-wise candidate generation with a
+ * TODO(hw4): implement Apriori (level-wise candidate generation with a
  * downward-closure pruning step) or any equivalent frequent-itemset miner.
- * You may call `countItemset` while developing, but a per-candidate scan over
- * 17,080 baskets is slow — build your own occurrence/index structures.
+ *
+ * Contract:
+ *  - Return one entry per frequent itemset: `{ items, count, support }`, where
+ *    `items` is the (deduplicated) set of stock codes, `count` is the number of
+ *    baskets containing every item, and `support = count / N`.
+ *  - Every returned itemset must satisfy `support >= minSupport`.
+ *  - You may call `countItemset` while developing, but a per-candidate scan over
+ *    17,080 baskets is slow — build your own occurrence/index structures.
+ *  - `generateRules` consumes this exact shape, so keep the field names stable.
  *
  * @param {Array<Array<Item|string>>} transactions baskets
  * @param {number} minSupport minimum support fraction in `(0, 1]`
@@ -311,9 +341,19 @@ function findFrequentItemsets(transactions, minSupport) {
  * Turn frequent itemsets into association rules and keep the ones whose
  * confidence is at least `minConfidence`.
  *
- * Each returned rule must follow the `Rule` shape documented at the top of this
- * module. Generate rules in BOTH directions (`A -> B` and `B -> A`); they are
- * separate rules with (usually) different confidence.
+ * TODO(hw4): for each frequent itemset, split it into a non-empty antecedent `A`
+ * and a non-empty, disjoint consequent `B` in BOTH directions, compute the
+ * confidence for each direction, and keep the rules that pass the threshold.
+ *
+ * Contract:
+ *  - Each returned rule follows the `Rule` shape documented at the top of this
+ *    module. At minimum it carries `antecedent` and `consequent`; the renderer
+ *    fills in the counts and metrics with `enrichRule`, but returning them
+ *    yourself is fine and faster.
+ *  - Generate both `A -> B` and `B -> A`: they are separate rules with (usually)
+ *    different confidence. Skip a direction whose consequent is empty.
+ *  - Keep only rules with `confidence >= minConfidence`. `count(A)` is non-zero
+ *    for every generated rule, so the confidence is always defined.
  *
  * @param {Array<{items: string[], count: number, support: number}>} frequentItemsets
  * @param {number} minConfidence minimum confidence fraction in `(0, 1]`
@@ -1007,7 +1047,7 @@ function runPipeline() {
     if (resultsEl) {
       resultsEl.innerHTML =
         '<p class="empty-state">Run failed &mdash; the rule miner did not complete. ' +
-        "Implement the two <code>TODO(hw4)</code> functions, then press &ldquo;Run rules&rdquo;. " +
+        "Implement the <code>TODO(hw4)</code> functions, then press &ldquo;Run rules&rdquo;. " +
         `Error: ${escapeHtml(message)}</p>`;
     }
     if (status) status.textContent = message;
@@ -1042,9 +1082,21 @@ function init() {
   primeDescriptions();
   N = TRANSACTIONS.length;
   DATASET_INDEX = buildIndex(TRANSACTIONS);
-  renderDatasetSummary(DATASET_INDEX);
+  try {
+    renderDatasetSummary(DATASET_INDEX);
+  } catch (error) {
+    // `renderDatasetSummary` is scaffolding, but guard it defensively so that an
+    // unimplemented TODO(hw4) stub can never take the whole page down at load
+    // time. The harness's "Run tests" button stays usable regardless.
+    const summary = document.getElementById("dataset-summary-body");
+    if (summary) {
+      summary.innerHTML =
+        '<p class="empty-state">Implement the TODO(hw4) functions to activate ' +
+        "the dataset summary.</p>";
+    }
+  }
   if (status) {
-    status.textContent = `Dataset ready: ${N.toLocaleString("en-US")} baskets, ${data.N_ITEMS.toLocaleString("en-US")} distinct items. Implement the two TODO(hw4) functions, then press “Run rules”.`;
+    status.textContent = `Dataset ready: ${N.toLocaleString("en-US")} baskets, ${data.N_ITEMS.toLocaleString("en-US")} distinct items. Implement the TODO(hw4) functions, then press “Run rules”.`;
   }
 }
 

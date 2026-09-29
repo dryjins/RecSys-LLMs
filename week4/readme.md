@@ -178,15 +178,30 @@ Notes:
 
 ## 6. Implementation & analysis tasks
 
-1. Read `week4/script.js` and identify the two `TODO(hw4)` stubs, the provided
-   metric helpers, and the test harness.
-2. Run the page, press **Run tests**, and record the baseline pass / fail / pending counts.
-3. Implement `findFrequentItemsets` with Apriori (level-wise candidate generation
-   plus downward-closure pruning) or an equivalent miner.
-4. Implement `generateRules`, including both rule directions and confidence filtering.
-5. Confirm that the two `TODO(hw4)` tests now report `PASS` and that the fixture's
-   `lift = 1`, `lift > 1`, and `lift < 1` cases match the hand-computed values in
-   `tinyWorkedExample`.
+1. Read `week4/script.js` and identify the seven `TODO(hw4)` stubs:
+   `dedupeBasket`, `countItemset`, `computeSupport`, `computeConfidence`,
+   `computeLift`, `findFrequentItemsets`, and `generateRules`. The rest of the
+   file (dataset loading/decoding, `buildIndex` / `asIndex`, the `countItem` /
+   `countPair` wrappers, `validateThresholds`, formatting, rendering, and the test
+   harness) is scaffolding and should be left as-is.
+2. Run the page, press **Run tests**, and record the baseline pass / fail /
+   pending counts. With the stubs untouched the harness reports **2 passed /
+   0 failed / 9 pending**; after a correct implementation all **11** checks
+   should pass.
+3. Implement the metric and counting stubs: `dedupeBasket` (unique stock codes in
+   first-appearance order), `countItemset` (baskets containing every requested
+   stock, returning `0` when any stock is absent), and `computeSupport`,
+   `computeConfidence`, `computeLift` (each returns `{ value, defined }` and
+   guards its zero denominator).
+4. Implement `findFrequentItemsets(transactions, minSupport)` with Apriori
+   (level-wise candidate generation plus downward-closure pruning) or an
+   equivalent miner, returning `{ items, count, support }` for each frequent
+   itemset.
+5. Implement `generateRules(frequentItemsets, minConfidence)`, generating both
+   rule directions (`A → B` and `B → A`) and keeping the rules that pass the
+   threshold. Confirm that the two miner checks now report `PASS` and that the
+   fixture's `lift = 1`, `lift > 1`, and `lift < 1` cases match the hand-computed
+   values in `tinyWorkedExample`.
 6. Run the miner on the real dataset at two threshold settings and save the rule
    tables you will cite.
 7. Hand-compute support, confidence, and lift for **one** rule from the real data
