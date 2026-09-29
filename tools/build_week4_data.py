@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build ``week4/data.js`` from the UCI Online Retail transaction log.
+"""Build the HW4 dataset artefacts from the UCI Online Retail transaction log.
 
 This is a one-off generator for the HW4 association-rules starter. It is NOT a
 student deliverable and it is not part of the browser page.
@@ -19,14 +19,20 @@ Pipeline
    ``{"stock", "description"}`` objects, one entry per distinct StockCode.
 6. Keep only baskets with at least two distinct items (single-item baskets cannot
    produce association rules).
-7. Write ``week4/data.js``.
+7. Dictionary-encode the baskets and write two artefacts:
+   - ``week4/data/transactions.json`` — compact JSON with parallel ``stocks`` /
+     ``descriptions`` item tables and integer-index baskets. The browser fetches
+     this file at runtime and decodes it back to ``{stock, description}`` objects.
+   - ``week4/data.js`` — a slim ES module exporting only ``DATA_URL``, the two
+     counts, and the provenance string (no embedded baskets).
 
 Usage
 -----
-    python3 tools/build_week4_data.py [--csv PATH] [--out PATH]
+    python3 tools/build_week4_data.py [--csv PATH] [--out PATH] [--out-json PATH]
 
-The source CSV path defaults to ``/tmp/opencode/uci/Online Retail.csv`` and the
-output to ``<repo>/week4/data.js``.
+The source CSV path defaults to ``/tmp/opencode/uci/Online Retail.csv``; the
+outputs default to ``<repo>/week4/data.js`` and
+``<repo>/week4/data/transactions.json``.
 """
 
 from __future__ import annotations
@@ -54,9 +60,11 @@ SOURCE_CITATION = (
 
 DATASET_ID = 352
 DEFAULT_CSV = "/tmp/opencode/uci/Online Retail.csv"
-DEFAULT_OUT = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "week4", "data.js"
+_WEEK4_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "week4"
 )
+DEFAULT_OUT = os.path.join(_WEEK4_DIR, "data.js")
+DEFAULT_OUT_JSON = os.path.join(_WEEK4_DIR, "data", "transactions.json")
 
 # --- Cleaning rules -----------------------------------------------------------
 
@@ -260,44 +268,100 @@ def build_baskets(kept, canonical: dict):
     return baskets, invoice_order
 
 
-def write_data_js(path: str, baskets, n_rows: int, n_items: int) -> None:
-    """Write the cleaned dataset as an ES module."""
-    n_baskets = len(baskets)
-    lines = [
-        "// Generated from UCI Online Retail (dataset_id 352). License per source DOI.",
-        "// Source: https://archive.ics.uci.edu/dataset/352/online+retail",
-        "// SHA-256 of source xlsx: %s" % SOURCE_XLSX_SHA256,
-        "// Rows after cleaning: %d (one row per (InvoiceNo, StockCode) pair)" % n_rows,
-        "// Baskets after cleaning: %d" % n_baskets,
-        "// Distinct items: %d" % n_items,
-        "//",
-        "// Source zip: %s" % SOURCE_ZIP_URL,
-        "// Citation: %s" % SOURCE_CITATION,
-        "//",
-        "// Each basket is an array of { stock, description } objects. Baskets with",
-        "// fewer than two distinct items are excluded because they cannot yield",
-        "// association rules.",
-        "",
-        "export const TRANSACTIONS = [",
-    ]
+def encode_dataset(baskets):
+    """Dictionary-encode baskets as integer indices plus parallel item tables.
+
+    Returns ``(stocks, descriptions, encoded)`` where ``stocks[i]`` and
+    ``descriptions[i]`` describe item ``i`` and each entry of ``encoded`` is a
+    list of item indices. ``descriptions`` is kept parallel to ``stocks`` (one
+    canonical description per stock code) so an index identifies a single product
+    identity. Items are ordered by descending basket frequency (ties broken by
+    stock code) so the most common items get the shortest indices and the output
+    is deterministic.
+    """
+    description_by_stock = {}
+    basket_counts = Counter()
     for basket in baskets:
-        lines.append("  %s," % json.dumps(basket, separators=(",", ":"), ensure_ascii=False))
-    lines.append("];")
-    lines.append("")
-    lines.append("export const N_BASKETS = %d;" % n_baskets)
-    lines.append("export const N_ITEMS = %d;" % n_items)
-    lines.append("")
-    provenance = (
+        for item in basket:
+            description_by_stock[item["stock"]] = item["description"]
+            basket_counts[item["stock"]] += 1
+    stocks = sorted(basket_counts, key=lambda stock: (-basket_counts[stock], stock))
+    index_by_stock = {stock: i for i, stock in enumerate(stocks)}
+    descriptions = [description_by_stock[stock] for stock in stocks]
+    encoded = [
+        [index_by_stock[item["stock"]] for item in basket] for basket in baskets
+    ]
+    return stocks, descriptions, encoded
+
+
+def provenance_string(n_rows: int, n_baskets: int) -> str:
+    """Return the human-readable provenance string shared by both artefacts."""
+    return (
         "UCI Online Retail (dataset_id 352). Daqing Chen, Sai Liang Sain, Kun Guo "
         "(2012). 541,909 raw rows cleaned to %d rows and %d baskets by removing "
         "cancellations, negative quantities/prices, blank descriptions, non-product "
         "codes, and single-item baskets."
     ) % (n_rows, n_baskets)
-    lines.append(
-        "export const dataset_provenance = %s;"
-        % json.dumps(provenance, ensure_ascii=False)
-    )
-    lines.append("")
+
+
+def write_transactions_json(path: str, baskets, n_items: int) -> int:
+    """Write the dictionary-encoded dataset as compact UTF-8 JSON.
+
+    Schema::
+
+        {
+          "N_BASKETS": <int>,
+          "N_ITEMS": <int>,
+          "stocks": [<stock code>, ...],
+          "descriptions": [<canonical description>, ...],   # parallel to stocks
+          "baskets": [[<item index>, ...], ...]
+        }
+
+    The file is written without indentation to minimise transfer size; a static
+    server is expected to gzip it on the wire. Returns the number of encoded
+    baskets.
+    """
+    stocks, descriptions, encoded = encode_dataset(baskets)
+    payload = {
+        "N_BASKETS": len(encoded),
+        "N_ITEMS": n_items,
+        "stocks": stocks,
+        "descriptions": descriptions,
+        "baskets": encoded,
+    }
+    directory = os.path.dirname(os.path.abspath(path))
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as handle:
+        json.dump(payload, handle, separators=(",", ":"), ensure_ascii=False)
+    return len(encoded)
+
+
+def write_data_js(path: str, n_rows: int, n_baskets: int, n_items: int, data_url: str) -> None:
+    """Write the slim ES module that points at the fetched JSON dataset."""
+    provenance = provenance_string(n_rows, n_baskets)
+    lines = [
+        "// Auto-generated; do not edit. Source: UCI Online Retail (dataset 352).",
+        "// Run tools/build_week4_data.py to regenerate.",
+        "//",
+        "// The baskets live in data/transactions.json (dictionary-encoded: parallel",
+        "// `stocks` / `descriptions` item tables plus integer-index baskets). Because",
+        "// the page fetches that file at runtime it must be served over HTTP —",
+        "// opening index.html via file:// will fail.",
+        "//",
+        "// Source: https://archive.ics.uci.edu/dataset/352/online+retail",
+        "// Source zip: %s" % SOURCE_ZIP_URL,
+        "// SHA-256 of source xlsx: %s" % SOURCE_XLSX_SHA256,
+        "// Citation: %s" % SOURCE_CITATION,
+        "// Rows after cleaning: %d (one row per (InvoiceNo, StockCode) pair)" % n_rows,
+        "",
+        "export const DATA_URL = %s;" % json.dumps(data_url),
+        "export const N_BASKETS = %d;" % n_baskets,
+        "export const N_ITEMS = %d;" % n_items,
+        "",
+        "export const dataset_provenance = %s;" % json.dumps(provenance, ensure_ascii=False),
+        "",
+    ]
     with open(path, "w", encoding="utf-8") as handle:
         handle.write("\n".join(lines))
 
@@ -306,6 +370,16 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", default=DEFAULT_CSV, help="raw UCI CSV path")
     parser.add_argument("--out", default=DEFAULT_OUT, help="output data.js path")
+    parser.add_argument(
+        "--out-json",
+        default=DEFAULT_OUT_JSON,
+        help="output transactions.json path",
+    )
+    parser.add_argument(
+        "--data-url",
+        default="data/transactions.json",
+        help="URL written into data.js for the browser to fetch",
+    )
     args = parser.parse_args(argv)
 
     if not os.path.exists(args.csv):
@@ -326,7 +400,8 @@ def main(argv=None) -> int:
             item_basket_counts[item["stock"]] += 1
     top_items = item_basket_counts.most_common(10)
 
-    write_data_js(args.out, baskets, n_rows, n_items)
+    write_transactions_json(args.out_json, baskets, n_items)
+    write_data_js(args.out, n_rows, len(baskets), n_items, args.data_url)
 
     print("original rows            : %d" % counters["raw_rows"])
     print("kept rows (all filters)  : %d" % len(kept))
@@ -344,6 +419,10 @@ def main(argv=None) -> int:
     print("rows in exported baskets : %d" % n_rows)
     print("basket count             : %d" % len(baskets))
     print("distinct item count      : %d" % n_items)
+    json_size = os.path.getsize(args.out_json)
+    js_size = os.path.getsize(args.out)
+    print("transactions.json        : %d bytes (%.2f MB)" % (json_size, json_size / 1e6))
+    print("data.js                  : %d bytes (%.2f KB)" % (js_size, js_size / 1024.0))
     print("top 10 items by basket count:")
     for rank, (stock, count) in enumerate(top_items, start=1):
         print("  %2d. %-8s %-45s %d baskets" % (rank, stock, canonical[stock], count))

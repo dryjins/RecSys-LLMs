@@ -32,20 +32,29 @@ By the end of this assignment you should be able to:
 ## 2. Run instructions
 
 **No build step and no external libraries are required.** The page is plain
-vanilla HTML/CSS/JavaScript and the dataset is embedded in `week4/data.js`, so it
-works fully offline apart from the HTTP serving described below.
+vanilla HTML/CSS/JavaScript, but it **must be served over HTTP** — see below.
 
-1. **Serve `week4/` over HTTP** (or deploy it to GitHub Pages). The page uses
-   JavaScript **ES modules** (`<script type="module">` plus `import`), and browsers
-   block module imports from the `file://` origin, so double-clicking
-   `index.html` will show a CORS error in Chrome and Firefox. A one-line static
-   server is enough:
+The dataset is *not* embedded in the JavaScript. `week4/data.js` only exports the
+dataset URL, the two counts, and the provenance string; `week4/script.js` fetches
+`week4/data/transactions.json` at startup and decodes it in the browser. Opening
+`index.html` directly works for neither reason: browsers block ES-module imports
+from the `file://` origin, *and* they block `fetch()` of a local JSON file in most
+configurations. **Do not open `index.html` by double-clicking it — serve it over
+HTTP instead.** (If the fetch fails, the page shows an explicit message telling
+you to serve it over HTTP.)
+
+1. **Serve the directory over HTTP** (or deploy it to GitHub Pages). Start the
+   server from the repository root, then browse to the `week4/` sub-path:
 
    ```bash
-   cd week4
+   # from the repository root
    python3 -m http.server 8000
-   # then open http://localhost:8000/ in a modern browser
+   # then open http://localhost:8000/week4/ in a modern browser
    ```
+
+   Any static server works, for example `npx serve .` (also run from the
+   repository root) or `python3 -m http.server` started inside `week4/` itself
+   (in which case open `http://localhost:8000/`).
 
 2. On the page you will see the **dataset summary** (total baskets, distinct
    items, top items), a **Controls** sidebar, the **Rules** table, the **Selected
@@ -59,8 +68,13 @@ works fully offline apart from the HTTP serving described below.
 5. Click a row in the Rules table to open it in the detail panel, then press
    **Reverse direction (B → A)** to compare `A → B` with `B → A`.
 
-`week4/data.js` is about 24 MB, so the first page load takes a few seconds while
-the browser parses it. That is expected; the file is the whole dataset.
+`week4/data/transactions.json` is a dictionary-encoded, compact (no indentation)
+**plain UTF-8** JSON file of about 1.7 MB. It is written as plain text on purpose
+so any static server can compress it: `python3 -m http.server` does **not**
+gzip, but GitHub Pages, `npx serve`, nginx, and most other static hosts apply
+gzip or Brotli automatically (a typical gzip transfer is a few hundred KB). The
+first load therefore fetches and parses the JSON once, then everything runs in
+memory.
 
 ---
 
@@ -157,8 +171,8 @@ Answer in the course report (see §7), using numbers produced by your own code:
    promoting `A` causes sales of `B`, and give a plausible confounding explanation
    for the rule you chose in item 1.
 6. **Validation plan (no timestamps in the exported data).** The source log has an
-   `InvoiceDate` column, but `week4/data.js` exports baskets only (grouped by
-   `InvoiceNo`), so the starter has **no usable timestamp**. **Do not simulate
+   `InvoiceDate` column, but the exported dataset contains baskets only (grouped
+   by `InvoiceNo`), so the starter has **no usable timestamp**. **Do not simulate
    temporal data.** Instead, propose a validation plan: for example, a held-out
    period split, an A/B test in which the bundle is shown to a treatment group and
    the incremental attach rate is compared with a control group, and the decision
@@ -220,7 +234,8 @@ Submit the **modified `week4/` directory** containing:
 
 | File | Role |
 |---|---|
-| `week4/data.js` | cleaned dataset (provided, do not modify) |
+| `week4/data.js` | dataset metadata + the JSON URL (provided, do not modify) |
+| `week4/data/transactions.json` | dictionary-encoded dataset, fetched at runtime (provided, do not modify) |
 | `week4/script.js` | your implementation of the two `TODO(hw4)` functions |
 | `week4/index.html` | page structure (provided) |
 | `week4/style.css` | styling (provided) |

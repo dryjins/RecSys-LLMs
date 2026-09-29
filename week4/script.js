@@ -1,9 +1,11 @@
 /**
  * week4/script.js — Association-rule mining starter (HW4).
  *
- * This module loads the cleaned UCI Online Retail baskets from `data.js`, renders
- * a dataset summary, and wires two slider controls ("minimum support" and
- * "minimum confidence") plus a "Run rules" button.
+ * This module fetches the dictionary-encoded UCI Online Retail baskets from
+ * `data/transactions.json` (via `DATA_URL` in `data.js`) at startup, decodes them
+ * back into `{ stock, description }` items, renders a dataset summary, and wires
+ * two slider controls ("minimum support" and "minimum confidence") plus a
+ * "Run rules" button.
  *
  * WHAT YOU MUST IMPLEMENT (`TODO(hw4)`):
  *   1. `findFrequentItemsets` — mine frequent itemsets (Apriori or equivalent)
@@ -23,10 +25,27 @@
  * @module week4/script
  */
 
-import { TRANSACTIONS, N_BASKETS, N_ITEMS, dataset_provenance } from "./data.js";
+import { DATA_URL, N_BASKETS, N_ITEMS, dataset_provenance } from "./data.js";
+
+/**
+ * Baskets fetched from `DATA_URL`, or `[]` until the fetch resolves. Each basket
+ * is an array of `{ stock, description }` items, matching the fixture shape used
+ * by the tests.
+ *
+ * @type {Array<Array<Item>>}
+ */
+let TRANSACTIONS = [];
+
+/**
+ * Dataset-wide inverted index, built once the dataset has been fetched. `null`
+ * until then, so the UI can tell "still loading" from "loaded".
+ *
+ * @type {BasketIndex|null}
+ */
+let DATASET_INDEX = null;
 
 /** Number of baskets (the `N` used by support and lift). */
-const N = TRANSACTIONS.length;
+let N = N_BASKETS;
 
 /**
  * @typedef {Object} Item
@@ -461,15 +480,11 @@ function formatItemset(stocks, index) {
   return stocks.map((stock) => describe(stock, index)).join(", ");
 }
 
-/** Lookup a stock code's canonical description, falling back to the code. */
+/**
+ * Lookup a stock code's canonical description, falling back to the code. Filled
+ * by `loadDataset()` once the JSON has been fetched.
+ */
 const descriptionByStock = new Map();
-TRANSACTIONS.forEach((basket) => {
-  for (const item of basket) {
-    if (!descriptionByStock.has(item.stock)) {
-      descriptionByStock.set(item.stock, item.description);
-    }
-  }
-});
 
 /**
  * Render `STOCK — human readable description` for one item.
@@ -900,8 +915,70 @@ export function runTests(logElement) {
 // Wiring
 // ---------------------------------------------------------------------------
 
-/** Dataset-wide inverted index, built once on first use. */
-const DATASET_INDEX = buildIndex(TRANSACTIONS);
+/**
+ * Fetch the dictionary-encoded dataset and decode it back into the shape the
+ * rest of this module expects: an array of baskets, where each basket is a list
+ * of `{ stock, description }` items.
+ *
+ * Throws when the fetch fails — for example when the page was opened from a
+ * `file://` URL, where browsers block the request — so the caller can render an
+ * explicit error instead of leaving the page silently empty.
+ *
+ * @returns {Promise<{N_BASKETS: number, N_ITEMS: number, descriptions: string[], baskets: Array<Array<{stock: string, description: string}>>}>}
+ */
+export async function loadDataset() {
+  const response = await fetch(DATA_URL);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} ${response.statusText} for ${DATA_URL}`);
+  }
+  const payload = await response.json();
+  const { stocks, descriptions, baskets } = payload;
+  const decoded = baskets.map((basket) =>
+    basket.map((stockIndex) => ({
+      stock: stocks[stockIndex],
+      description: descriptions[stockIndex],
+    })),
+  );
+  for (const basket of decoded) {
+    for (const item of basket) {
+      if (!descriptionByStock.has(item.stock)) {
+        descriptionByStock.set(item.stock, item.description);
+      }
+    }
+  }
+  return {
+    N_BASKETS: payload.N_BASKETS,
+    N_ITEMS: payload.N_ITEMS,
+    descriptions,
+    baskets: decoded,
+  };
+}
+
+/**
+ * Render an explicit, visible error when the dataset cannot be fetched, rather
+ * than failing silently.
+ *
+ * @param {unknown} error
+ * @returns {void}
+ */
+function showLoadError(error) {
+  const message =
+    "Could not load dataset — serve via HTTP (e.g. `python3 -m http.server`) and reload.";
+  const paragraph = document.createElement("p");
+  paragraph.className = "load-error";
+  paragraph.textContent = message;
+  const summaryBody = document.getElementById("dataset-summary-body");
+  if (summaryBody) {
+    summaryBody.replaceChildren(paragraph);
+  } else {
+    document.body.appendChild(paragraph);
+  }
+  const status = document.getElementById("status");
+  if (status) {
+    const detail = error && error.message ? ` (${error.message})` : "";
+    status.textContent = `${message}${detail}`;
+  }
+}
 
 /**
  * Read the two sliders and return the thresholds as fractions in `(0, 1]`.
@@ -934,6 +1011,13 @@ function syncThresholdLabels() {
  */
 function runPipeline() {
   const status = document.getElementById("status");
+  if (!DATASET_INDEX) {
+    if (status) {
+      status.textContent =
+        "Dataset not loaded yet — serve the page over HTTP and reload.";
+    }
+    return;
+  }
   const { minSupport, minConfidence } = readThresholds();
   const validation = validateThresholds(minSupport, minConfidence);
   if (!validation.ok) {
@@ -954,9 +1038,16 @@ function runPipeline() {
   }
 }
 
-/** Attach all event listeners once the DOM is ready. */
-function init() {
-  renderDatasetSummary(DATASET_INDEX);
+/**
+ * Wire the controls once the DOM is ready, then fetch the dataset and render it.
+ *
+ * The event listeners are attached before the fetch so that "Run tests" (which
+ * only needs the in-module fixture) still works even when the dataset cannot be
+ * loaded.
+ *
+ * @returns {Promise<void>}
+ */
+async function init() {
   renderWorkedExample(tinyWorkedExample());
   syncThresholdLabels();
 
@@ -972,6 +1063,17 @@ function init() {
   if (testButton) testButton.addEventListener("click", () => runTests());
 
   const status = document.getElementById("status");
+  let dataset;
+  try {
+    dataset = await loadDataset();
+  } catch (error) {
+    showLoadError(error);
+    return;
+  }
+  TRANSACTIONS = dataset.baskets;
+  N = TRANSACTIONS.length;
+  DATASET_INDEX = buildIndex(TRANSACTIONS);
+  renderDatasetSummary(DATASET_INDEX);
   if (status) {
     status.textContent = `Dataset ready: ${N.toLocaleString("en-US")} baskets, ${N_ITEMS.toLocaleString("en-US")} distinct items. Implement the two TODO(hw4) functions, then press “Run rules”.`;
   }
