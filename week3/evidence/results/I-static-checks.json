@@ -1,0 +1,123 @@
+{
+ "section": "I-static-and-data-integrity",
+ "hashes": {
+  "u.data": "06416e597f82b7342361e41163890c81036900f418ad91315590814211dca490",
+  "u.item": "553841ebc7de3a0fd0d6b62a204ea30c1e651aacfb2814c7a6584ac52f2c5701"
+ },
+ "expectedHashes": {
+  "u.data": "06416e597f82b7342361e41163890c81036900f418ad91315590814211dca490",
+  "u.item": "553841ebc7de3a0fd0d6b62a204ea30c1e651aacfb2814c7a6584ac52f2c5701"
+ },
+ "summary": {
+  "passed": 21,
+  "failed": 0,
+  "total": 21,
+  "checks": [
+   {
+    "name": "u.data is unmodified",
+    "passed": true,
+    "detail": "06416e597f82b7342361e41163890c81036900f418ad91315590814211dca490"
+   },
+   {
+    "name": "u.item is unmodified",
+    "passed": true,
+    "detail": "553841ebc7de3a0fd0d6b62a204ea30c1e651aacfb2814c7a6584ac52f2c5701"
+   },
+   {
+    "name": "production page does not load tests.js",
+    "passed": true,
+    "detail": "no reference"
+   },
+   {
+    "name": "tests.js exists but is harness-only",
+    "passed": true,
+    "detail": "week3/tests.js"
+   },
+   {
+    "name": "page loads only local application scripts",
+    "passed": true,
+    "detail": "['data.js', 'script.js']"
+   },
+   {
+    "name": "no remote script or stylesheet is referenced",
+    "passed": true,
+    "detail": "none"
+   },
+   {
+    "name": "script.js never assigns innerHTML",
+    "passed": true,
+    "detail": "0 assignments"
+   },
+   {
+    "name": "script.js inserts text via textContent",
+    "passed": true,
+    "detail": "textContent used"
+   },
+   {
+    "name": "script.js has no import or require statements",
+    "passed": true,
+    "detail": "none"
+   },
+   {
+    "name": "no CDN or vendor library is referenced",
+    "passed": true,
+    "detail": "none"
+   },
+   {
+    "name": "u.item is decoded as windows-1252",
+    "passed": true,
+    "detail": "windows-1252"
+   },
+   {
+    "name": "similarity lambda is 25",
+    "passed": true,
+    "detail": "SIMILARITY_LAMBDA = 25"
+   },
+   {
+    "name": "neighbour limit is 20",
+    "passed": true,
+    "detail": "NEIGHBOUR_LIMIT = 20"
+   },
+   {
+    "name": "significance weight is n/(n+lambda)",
+    "passed": true,
+    "detail": "similarityFromTotals"
+   },
+   {
+    "name": "ratings are clamped to the 1..5 scale",
+    "passed": true,
+    "detail": "clampRating used"
+   },
+   {
+    "name": "genre list has exactly 18 named genres",
+    "passed": true,
+    "detail": "18 entries"
+   },
+   {
+    "name": "no genre is named 'unknown'",
+    "passed": true,
+    "detail": "flag is separate"
+   },
+   {
+    "name": "unknown is carried as a separate flag, not a genre",
+    "passed": true,
+    "detail": "separate field"
+   },
+   {
+    "name": "style.css defines focus styles for every control",
+    "passed": true,
+    "detail": "focus rules present"
+   },
+   {
+    "name": "style.css has a small-viewport media query",
+    "passed": true,
+    "detail": "640px breakpoint"
+   },
+   {
+    "name": "style.css has a print or reduced-motion or contrast affordance",
+    "passed": true,
+    "detail": "checked"
+   }
+  ]
+ }
+}

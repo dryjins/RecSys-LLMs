@@ -1,0 +1,145 @@
+{
+ "section": "B-unit-and-regression",
+ "summary": {
+  "passed": 27,
+  "failed": 0,
+  "total": 27
+ },
+ "checks": [
+  {
+   "name": "zero overlap returns similarity 0",
+   "passed": true,
+   "detail": "{\"similarity\":0,\"rawCosine\":0,\"overlap\":0}"
+  },
+  {
+   "name": "zero denominator returns an explicit fallback",
+   "passed": true,
+   "detail": "{\"predictedRating\":3,\"baseline\":3,\"usedFallback\":true,\"fallbackReason\":\"no-contributors\",\"contributorCount\":0,\"denominator\":0,\"overlaps\":[]}"
+  },
+  {
+   "name": "raw cosine uses only co-rated entries",
+   "passed": true,
+   "detail": "overlap 3"
+  },
+  {
+   "name": "raw cosine matches the hand calculation",
+   "passed": true,
+   "detail": "0.9742160336041298"
+  },
+  {
+   "name": "significance weight is exactly n/(n+25)",
+   "passed": true,
+   "detail": "0.10438028931472819"
+  },
+  {
+   "name": "cosineSimilarity is the numeric wrapper",
+   "passed": true,
+   "detail": "0.10438028931472819"
+  },
+  {
+   "name": "a one-rating overlap is strongly shrunk",
+   "passed": true,
+   "detail": "raw 1 weighted 0.038461538461538464"
+  },
+  {
+   "name": "user sparse similarity equals dense similarity",
+   "passed": true,
+   "detail": "dense 0.4021040781879157 sparse 0.4021040781879157"
+  },
+  {
+   "name": "five real item sparse similarities equal dense columns",
+   "passed": true,
+   "detail": "6/6 within 1e-12"
+  },
+  {
+   "name": "all sampled similarities are finite and in [0,1]",
+   "passed": true,
+   "detail": "480 pairs"
+  },
+  {
+   "name": "predictions are finite and clamped to [1,5]",
+   "passed": true,
+   "detail": "10 predictions"
+  },
+  {
+   "name": "every prediction result carries a finite baseline for the UI",
+   "passed": true,
+   "detail": "baseline present on every result"
+  },
+  {
+   "name": "both methods return five supported recommendations per fixed user",
+   "passed": true,
+   "detail": "5/5 users"
+  },
+  {
+   "name": "rankings are deterministic on repeated execution",
+   "passed": true,
+   "detail": "stable"
+  },
+  {
+   "name": "hidden rating is excluded from the user mean",
+   "passed": true,
+   "detail": "3.6051660516605164"
+  },
+  {
+   "name": "hidden rating is excluded from the item mean",
+   "passed": true,
+   "detail": "3.8758314855875833"
+  },
+  {
+   "name": "hidden rating leaves the user similarity intersection",
+   "passed": true,
+   "detail": "18 -> 17"
+  },
+  {
+   "name": "hidden rating leaves the item similarity intersection",
+   "passed": true,
+   "detail": "104 -> 103"
+  },
+  {
+   "name": "hidden rating leaves the item neighbour totals",
+   "passed": true,
+   "detail": "anchor totals"
+  },
+  {
+   "name": "a fallback is labelled FALLBACK",
+   "passed": true,
+   "detail": "FALLBACK"
+  },
+  {
+   "name": "a thin but valid prediction is never labelled FALLBACK",
+   "passed": true,
+   "detail": "LOW"
+  },
+  {
+   "name": "HIGH band requires strong support",
+   "passed": true,
+   "detail": "HIGH"
+  },
+  {
+   "name": "MEDIUM band requires moderate support",
+   "passed": true,
+   "detail": "MEDIUM"
+  },
+  {
+   "name": "collectItemNeighbours keeps a per-anchor accumulator",
+   "passed": true,
+   "detail": "no candidate with two anchors"
+  },
+  {
+   "name": "collectItemNeighbours anchors are the user rated items",
+   "passed": true,
+   "detail": "anchors"
+  },
+  {
+   "name": "per-anchor accumulators reproduce the pairwise similarity",
+   "passed": true,
+   "detail": "40 candidates"
+  },
+  {
+   "name": "multi-anchor candidates exist for the regression test",
+   "passed": true,
+   "detail": "40"
+  }
+ ]
+}

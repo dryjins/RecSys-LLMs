@@ -1,0 +1,93 @@
+{
+ "section": "C-professor-worked-example",
+ "details": {
+  "slideAggregate": {
+   "expression": "3.67 + (-2.764 / 2.543)",
+   "sumOfEffects": -2.764,
+   "sumOfAbsoluteSimilarities": 2.543,
+   "prediction": 2.583095
+  },
+  "roundedRows": {
+   "rows": [
+    {
+     "label": "Star Wars",
+     "similarity": -0.99,
+     "deviation": 1.67,
+     "effect": -1.653
+    },
+    {
+     "label": "Dune",
+     "similarity": 0.72,
+     "deviation": 0,
+     "effect": 0
+    },
+    {
+     "label": "Interstellar",
+     "similarity": -0.84,
+     "deviation": 1.33,
+     "effect": -1.117
+    }
+   ],
+   "recomputedSumOfEffects": -2.7705,
+   "recomputedSumOfAbsoluteSimilarities": 2.55,
+   "prediction": 2.583529
+  },
+  "agreement": {
+   "absoluteDifference": 0.000435,
+   "bothRoundTo": true,
+   "cause": "The slide prints row values rounded to two decimals while its denominator 2.543 is carried at three decimals, so the two routes differ in the third decimal. Neither is exact; both round to 2.58."
+  },
+  "productionContract": {
+   "strategy": "Significance-weighted co-rated cosine",
+   "range": "similarity in [0, 1]; only positively related neighbours contribute",
+   "note": "Production similarity is non-negative by construction. The signed values on the slide demonstrate that the aggregation rule is general, not that the production similarity can produce them."
+  }
+ },
+ "summary": {
+  "passed": 8,
+  "failed": 0,
+  "total": 8,
+  "checks": [
+   {
+    "name": "slide aggregate rounds to 2.58",
+    "passed": true,
+    "detail": "2.583094769956744"
+   },
+   {
+    "name": "rounded rows round to 2.58",
+    "passed": true,
+    "detail": "2.5835294117647054"
+   },
+   {
+    "name": "the two routes agree within 0.005",
+    "passed": true,
+    "detail": "0.00043464180796126684"
+   },
+   {
+    "name": "the real aggregator reproduces the slide aggregate",
+    "passed": true,
+    "detail": "2.583094769956744"
+   },
+   {
+    "name": "the real aggregator reproduces the rounded rows",
+    "passed": true,
+    "detail": "2.5835294117647054"
+   },
+   {
+    "name": "the aggregator is not a fallback in either route",
+    "passed": true,
+    "detail": "ok"
+   },
+   {
+    "name": "a zero denominator still falls back on the shared helper",
+    "passed": true,
+    "detail": "ok"
+   },
+   {
+    "name": "production cosine stays non-negative on the fixture data",
+    "passed": true,
+    "detail": "non-negative"
+   }
+  ]
+ }
+}
