@@ -1,0 +1,309 @@
+/* week4/style.css — HW4 association-rules starter.
+   Clean neutral palette, readable type, tabular numbers, single column < 700px. */
+
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --border: #d5d9e0;
+  --text: #1c2128;
+  --muted: #5b6472;
+  --accent: #1f4e79;
+  --accent-contrast: #ffffff;
+  --warning: #7a4b00;
+  --warning-bg: #fff5e0;
+  --focus: #b4530a;
+  --shadow: 0 1px 2px rgba(28, 33, 40, 0.08), 0 4px 12px rgba(28, 33, 40, 0.06);
+  --radius: 8px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+h1, h2, h3 {
+  line-height: 1.25;
+  margin: 0 0 0.5rem;
+}
+
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.15rem; margin-top: 0; }
+h3 { font-size: 1rem; margin-top: 1.5rem; }
+
+p { margin: 0 0 0.75rem; }
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  background: #eef1f4;
+  padding: 0.05em 0.3em;
+  border-radius: 4px;
+}
+
+/* --- layout ------------------------------------------------------------- */
+
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem 1.25rem 1rem;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 1.25rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.panel,
+section[aria-labelledby="results-heading"] {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+}
+
+.summary {
+  margin-top: 0.5rem;
+}
+
+.summary-line {
+  font-variant-numeric: tabular-nums;
+}
+
+.provenance {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+/* --- controls ----------------------------------------------------------- */
+
+.control {
+  margin-bottom: 1rem;
+}
+
+.control label {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.control output {
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.control input[type="range"] {
+  width: 100%;
+  margin: 0.25rem 0;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+button {
+  font: inherit;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  cursor: pointer;
+}
+
+button.secondary {
+  background: var(--surface);
+  color: var(--accent);
+}
+
+button:hover {
+  filter: brightness(0.94);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+input[type="range"]:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 4px;
+}
+
+.status {
+  background: #eef1f4;
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  min-height: 2.5rem;
+}
+
+.test-log {
+  background: #10151b;
+  color: #e6ebf0;
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  max-height: 22rem;
+  overflow: auto;
+  margin: 0;
+}
+
+/* --- tables ------------------------------------------------------------- */
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  margin-top: 0.5rem;
+}
+
+.data-table th,
+.data-table td {
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.data-table th {
+  background: #eef1f4;
+  font-weight: 600;
+}
+
+.data-table td.num,
+.data-table th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.rules-table tbody tr {
+  cursor: pointer;
+}
+
+.rules-table tbody tr:hover,
+.rules-table tbody tr:focus-visible {
+  background: #eef4fa;
+}
+
+.results-count {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.empty-state {
+  color: var(--muted);
+  font-style: italic;
+  margin: 0;
+}
+
+/* --- rule detail -------------------------------------------------------- */
+
+.rule-metrics {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.25rem 1rem;
+  margin: 0 0 0.75rem;
+}
+
+.rule-metrics dt {
+  font-weight: 600;
+}
+
+.rule-metrics dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.comparison {
+  background: #eef4fa;
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+.warning {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+.worked-example-intro {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* --- responsive --------------------------------------------------------- */
+
+@media (max-width: 700px) {
+  .layout {
+    grid-template-columns: 1fr;
+    padding: 0.75rem;
+  }
+
+  .sidebar {
+    position: static;
+  }
+}

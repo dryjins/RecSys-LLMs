@@ -1,51 +1,83 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Two-Tower Movie Recommender</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .controls { margin: 20px 0; }
-        button { padding: 10px 15px; margin: 5px; font-size: 16px; }
-        .status { margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 5px; }
-        .chart-container { margin: 20px 0; }
-        canvas { border: 1px solid #ccc; }
-        .results { margin: 20px 0; }
-        table { border-collapse: collapse; width: 100%; margin: 10px 0; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .side-by-side { display: flex; gap: 20px; }
-        .side-by-side > div { flex: 1; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HW4 — Association Rules</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Two-Tower Movie Recommender</h1>
-        
-        <div class="controls">
-            <button id="loadData">Load Data</button>
-            <button id="train" disabled>Train</button>
-            <button id="test" disabled>Test</button>
-        </div>
-        
-        <div id="status" class="status">Ready to load data...</div>
-        
-        <div class="chart-container">
-            <h3>Training Loss</h3>
-            <canvas id="lossChart" width="800" height="300"></canvas>
-        </div>
-        
-        <div class="chart-container">
-            <h3>Item Embeddings (PCA)</h3>
-            <canvas id="embeddingChart" width="800" height="600"></canvas>
-        </div>
-        
-        <div id="results" class="results"></div>
-    </div>
+  <header class="site-header">
+    <h1>HW4 — Association Rules</h1>
+    <p class="subtitle">UCI Online Retail (dataset 352) cleaned to 17,080 transactions.</p>
+    <section id="dataset-summary" aria-labelledby="dataset-summary-heading" class="summary">
+      <h2 id="dataset-summary-heading">Dataset summary</h2>
+      <div id="dataset-summary-body">
+        <p class="empty-state">Loading dataset…</p>
+      </div>
+    </section>
+  </header>
 
-    <!-- Load TensorFlow.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
-    <script src="two-tower.js"></script>
-    <script src="app.js"></script>
+  <div class="layout">
+    <aside class="sidebar" aria-labelledby="controls-heading">
+      <h2 id="controls-heading">Controls</h2>
+
+      <div class="control">
+        <label for="min-support">
+          Minimum support
+          <output id="min-support-value" for="min-support">1.0%</output>
+        </label>
+        <input type="range" id="min-support" name="min-support"
+               min="0.5" max="10" step="0.5" value="1"
+               aria-describedby="min-support-hint">
+        <p class="hint" id="min-support-hint">0.5% – 10% of baskets.</p>
+      </div>
+
+      <div class="control">
+        <label for="min-confidence">
+          Minimum confidence
+          <output id="min-confidence-value" for="min-confidence">30%</output>
+        </label>
+        <input type="range" id="min-confidence" name="min-confidence"
+               min="10" max="100" step="5" value="30"
+               aria-describedby="min-confidence-hint">
+        <p class="hint" id="min-confidence-hint">10% – 100%.</p>
+      </div>
+
+      <div class="button-row">
+        <button type="button" id="run-rules">Run rules</button>
+        <button type="button" id="run-tests" class="secondary">Run tests</button>
+      </div>
+
+      <p id="status" class="status" role="status" aria-live="polite">Loading…</p>
+
+      <h3 id="test-log-heading">Test log</h3>
+      <pre id="testLog" class="test-log" tabindex="0" aria-labelledby="test-log-heading">Press “Run tests” to execute the self-checks.</pre>
+    </aside>
+
+    <main>
+      <section aria-labelledby="results-heading">
+        <h2 id="results-heading">Rules</h2>
+        <div id="results">
+          <p class="empty-state">No rules yet. Set the thresholds and press “Run rules”.</p>
+        </div>
+      </section>
+
+      <section aria-labelledby="detail-heading" class="panel">
+        <h2 id="detail-heading">Selected rule</h2>
+        <div id="rule-detail">
+          <p class="empty-state">Click a rule row to inspect it.</p>
+        </div>
+      </section>
+
+      <section aria-labelledby="example-heading" class="panel">
+        <h2 id="example-heading">Worked example</h2>
+        <div id="worked-example"></div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="data.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>

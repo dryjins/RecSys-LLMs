@@ -1,195 +1,271 @@
-Role
+# HW4 — Association Rules (Week 4)
 
--   You are an expert front‑end ML engineer building a browser‑based Two‑Tower retrieval demo with TensorFlow.js for the MovieLens 100K dataset (u.data, u.item), suitable for static GitHub Pages hosting.[classic.d2l+2](https://classic.d2l.ai/chapter_recommender-systems/movielens.html)
-    
+**Course**: LLM4Rec, HSE University
+**Instructor**: Seungmin Jin (sedzhin@hse.ru)
+**Repository**: https://github.com/dryjins/RecSys-LLMs/tree/main/week4
+**Task type**: Assignment (individual)
 
-Context
+---
 
--   Dataset: MovieLens 100K
-    
-    -   u.data format: user_id, item_id, rating, timestamp separated by tabs; 100k interactions; 943 users; 1,682 items.[kaggle+2](https://www.kaggle.com/datasets/prajitdatta/movielens-100k-dataset)
-        
-    -   u.item format: item_id|title|release_date|…; use item_id and title, optionally year parsed from title. [info.univ-tours](https://www.info.univ-tours.fr/~vperalta/publications/trapmd2-vp.pdf)
-        
--   Goal: Build an in‑browser Two‑Tower model:
-    
-    -   User tower: user_id → embedding
-        
-    -   Item tower: item_id → embedding
-        
-    -   Scoring: dot product
-        
-    -   Loss: sampled‑softmax (in‑batch negatives) or BPR‑style pairwise; acceptable to use a simple contrastive loss with in‑batch negatives for clarity.[tensorflow+1](https://www.tensorflow.org/recommenders/examples/basic_retrieval)
-        
--   UX requirements:
-    
-    -   Buttons: “Load Data”, “Train”, “Test”.
-        
-    -   Training shows live loss chart and epoch progress; after training, render 2D projection (PCA or t‑SNE via numeric approximation) of a sample of item embeddings.
-        
-    -   Test action: randomly select a user who has at least 20 ratings; show:
-        
-        -   Left: that user’s top‑10 historically rated movies (by rating, then recency).
-            
-        -   Right: model’s top‑10 recommended movies (exclude items the user already rated).
-            
-    -   Present the two lists in a single side‑by‑side HTML table.
-        
--   Constraints:
-    
-    -   Pure client‑side (no server), runs on GitHub Pages. Fetch u.data and u.item via relative paths (place files under data/).
-        
-    -   Use TensorFlow.js only; no Python, no build step.
-        
-    -   Keep memory in check: allow limiting interactions (e.g., max 80k) and embedding dim (e.g., 32).
-        
-    -   Deterministic seeding optional; browsers vary.
-        
--   References for correctness:
-    
-    -   Two‑tower retrieval on MovieLens in TF/TFRS (concepts and loss)[tensorflow+1](https://blog.tensorflow.org/2020/09/introducing-tensorflow-recommenders.html)
-        
-    -   MovieLens 100K format details[fontaine618.github+2](https://fontaine618.github.io/publication/fontaine-movielens-2020/fontaine-movielens-2020.pdf)
-        
-    -   TensorFlow.js in‑browser training guidance[techhub.iodigital+1](https://techhub.iodigital.com/articles/on-the-fly-machine-learning-in-the-browser-with-tensor-flow-js)
-        
+## 1. Learning goals
 
-Instructions
+By the end of this assignment you should be able to:
 
--   Return three files with complete code, each in a separate fenced code block.
-    
--   Implement clean, commented JavaScript with clear sections.
-    
+- Turn a raw retail transaction log into **item counts** and **pairwise
+  co-occurrence counts**, and explain why those counts are all that
+  association-rule mining needs.
+- Compute **support**, **confidence**, and **lift** for a rule, and explain what
+  each metric does and does not measure.
+- Implement **Apriori** (or an equivalent frequent-itemset miner) using the
+  downward-closure property: every subset of a frequent itemset is frequent.
+- Generate **candidate rules in both directions** (`A → B` and `B → A`) and show
+  that confidence is *not* symmetric while lift *is*.
+- Filter a rule list with **support / confidence thresholds** and describe how the
+  list changes as the thresholds move.
+- Distinguish a **genuinely useful rule** from a **misleading one** that only looks
+  good because one item is very frequent.
+- Reason about **association versus causation**, and propose a **validation plan**
+  for a rule when the exported dataset carries no usable time information.
 
-a) index.html
+---
 
--   Include:
-    
-    -   Title and minimal CSS.
-        
-    -   Buttons: Load Data, Train, Test.
-        
-    -   Status area, loss chart canvas, and embedding projection canvas.
-        
-    -   A <div id="results"> to hold the side‑by‑side table of Top‑10 Rated vs Top‑10 Recommended.
-        
-    -   Scripts: load TensorFlow.js from CDN, then app.js and two-tower.js.
-        
--   Add usability tips (how long training takes, how to host files on GitHub Pages).
-    
+## 2. Run instructions
 
-b) app.js
+**No build step and no external libraries are required.** The page is plain
+vanilla HTML/CSS/JavaScript and the dataset is embedded in `week4/data.js`, so it
+works fully offline apart from the HTTP serving described below.
 
--   Data loading:
-    
-    -   Fetch data/u.data and data/u.item with fetch(); parse lines; build:
-        
-        -   interactions: [{userId, itemId, rating, ts}]
-            
-        -   items: Map itemId → {title, year}
-            
-    -   Build user→rated items and user→top‑rated (compute once).
-        
-    -   Create integer indexers for userId and itemId to 0‑based indices; store reverse maps.
-        
--   Train pipeline:
-    
-    -   Build batches: for each (u, i_pos), sample negatives from global item set or use in‑batch negatives.
-        
-    -   Normalize user/item counts; allow config: epochs, batch size, embeddingDim, learningRate, maxInteractions.
-        
-    -   Show a live line chart of loss per batch/epoch using a simple canvas 2D plotter (no external chart lib).
-        
--   Test pipeline:
-    
-    -   Pick a random user with ≥20 ratings.
-        
-    -   Compute user embedding via user tower; compute scores vs all items using matrix ops (batched for memory).
-        
-    -   Exclude items the user already rated; return top‑10 titles.
-        
-    -   Render a side‑by‑side HTML table: left = user’s historical top‑10; right = model recommendations top‑10.
-        
--   Visualization:
-    
-    -   After training, take a sample (e.g., 1,000 items), project item embeddings to 2D with PCA (simple power method or SVD via numeric approximation) and draw scatter with titles on hover.
-        
+1. **Serve `week4/` over HTTP** (or deploy it to GitHub Pages). The page uses
+   JavaScript **ES modules** (`<script type="module">` plus `import`), and browsers
+   block module imports from the `file://` origin, so double-clicking
+   `index.html` will show a CORS error in Chrome and Firefox. A one-line static
+   server is enough:
 
-c) two-tower.js
+   ```bash
+   cd week4
+   python3 -m http.server 8000
+   # then open http://localhost:8000/ in a modern browser
+   ```
 
--   Implement a minimal Two‑Tower in TF.js:
-    
-    -   Class TwoTowerModel:
-        
-        -   constructor(numUsers, numItems, embDim)
-            
-            -   userEmbedding: tf.variable(tf.randomNormal([numUsers, embDim], stddev=0.05))
-                
-            -   itemEmbedding: tf.variable(tf.randomNormal([numItems, embDim], stddev=0.05))
-                
-        -   userForward(userIdxTensor) → embeddings gather
-            
-        -   itemForward(itemIdxTensor) → embeddings gather
-            
-        -   score(uEmb, iEmb): dot product along last dim
-            
-    -   Loss:
-        
-        -   Option 1 (default): in‑batch sampled softmax
-            
-            -   For a batch of user embeddings U and positive item embeddings I+, compute logits = U @ I^T, labels = diagonal; apply softmax cross‑entropy.
-                
-        -   Option 2: BPR pairwise loss
-            
-            -   Sample negative items I−; loss = −log σ(score(U, I+) − score(U, I−)).
-                
-        -   Provide a flag to switch.
-            
-    -   Training step:
-        
-        -   Adam optimizer; gradient tape to update both embedding tables.
-            
-        -   Return scalar loss for UI plotting.
-            
-    -   Inference:
-        
-        -   getUserEmbedding(uIdx)
-            
-        -   getScoresForAllItems(uEmb, itemEmbMatrix) with batched matmul; return top‑K indices.
-            
--   Comments:
-    
-    -   Add short comments above each key block explaining the idea (why two‑towers, how in‑batch negatives work, why dot product).
-        
+2. On the page you will see the **dataset summary** (total baskets, distinct
+   items, top items), a **Controls** sidebar, the **Rules** table, the **Selected
+   rule** detail panel, and the **Worked example** readout.
+3. Press **Run tests** first. The self-checks cover the metric helpers, the
+   five-basket worked example, duplicate handling, empty results, invalid
+   thresholds, and the zero-denominator guard. The two `TODO(hw4)` checks report
+   `PENDING` until you implement the miner, then they must report `PASS`.
+4. Set the two sliders (minimum support, minimum confidence) and press
+   **Run rules**.
+5. Click a row in the Rules table to open it in the detail panel, then press
+   **Reverse direction (B → A)** to compare `A → B` with `B → A`.
 
-Format
+`week4/data.js` is about 24 MB, so the first page load takes a few seconds while
+the browser parses it. That is expected; the file is the whole dataset.
 
--   Return three code blocks only, labeled exactly:
-    
-    -   index.html
-        
-    -   app.js
-        
-    -   two-tower.js
-        
--   No extra prose outside the code blocks.
-    
--   Ensure the code runs when the repository structure is:
-    
-    -   /index.html
-        
-    -   /app.js
-        
-    -   /two-tower.js
-        
-    -   /data/u.data
-        
-    -   /data/u.item
-        
--   The UI must:
-    
-    -   Load Data → parse and index.
-        
-    -   Train → run epochs, update loss chart, then draw embedding projection.
-        
-    -   Test → pick a random qualified user, render a side‑by‑side table of Top‑10 Rated vs Top‑10 Recommended.
+---
+
+## 3. Dataset provenance
+
+- **Source**: UCI Machine Learning Repository, *Online Retail*, dataset id **352**.
+  - Dataset page: `https://archive.ics.uci.edu/dataset/352/online+retail`
+  - Raw download: `https://archive.ics.uci.edu/static/public/352/online+retail.zip`
+  - Original workbook sha256:
+    `43465a06f2ccf7c8b5bd2892bc7defb52f97487934fe93b16ae4c3936424676d`
+- **Citation** (as required by the source): Daqing Chen, Sai Liang Sain, and Kun
+  Guo, "Data mining for the online retail industry: A case study of RFM
+  model-based customer segmentation using data mining", *Journal of Cases on
+  Information Technology*, 2012.
+- **Cleaning summary** (performed by `tools/build_week4_data.py`, a one-off
+  generator that is **not** part of this assignment):
+  - 541,909 raw rows → **384,911 kept rows**, **17,080 baskets**, **3,653 distinct items**.
+  - Rows removed: cancellations (`InvoiceNo` starting with `C`) and adjustments
+    (`A`), non-positive `Quantity`, non-positive `UnitPrice`, blank `Description`,
+    guest checkouts (blank `CustomerID`), and non-product codes (postage,
+    carriage, bank charges, manual entries, samples, discounts, gift vouchers,
+    packing charges, internal adjustments).
+  - `StockCode` is trimmed and upper-cased so case variants such as `84509c` and
+    `84509C` collapse to one item; `Description` is upper-cased, whitespace is
+    collapsed, trailing punctuation is dropped, and one canonical description is
+    kept per stock code.
+  - Baskets are grouped by `InvoiceNo`. Baskets with fewer than two distinct items
+    are dropped because they cannot yield a rule. Baskets are **not** split by
+    customer.
+- The full provenance string is exported as `dataset_provenance` in
+  `week4/data.js` and is displayed in the page's dataset summary.
+
+---
+
+## 4. Required student work
+
+### 4.1 Implementation Task
+
+Implement the two `TODO(hw4)` functions in `week4/script.js`:
+
+1. **Basket aggregation.** Confirm that `TRANSACTIONS` is an array of baskets and
+   that a basket behaves as a *set* of items (a repeated item must be counted
+   once). The provided `dedupeBasket` helper is the reference for this rule.
+2. **Support, confidence, lift.** Use the provided helpers
+   (`countItemset`, `countItem`, `countPair`, `computeSupport`,
+   `computeConfidence`, `computeLift`) or derive the metrics yourself — but your
+   numbers must match the definitions in §5 exactly.
+3. **Frequent itemsets.** Implement `findFrequentItemsets(transactions, minSupport)`
+   — Apriori or an equivalent level-wise miner — and return itemsets with their
+   counts and supports.
+4. **Candidate rules.** Implement `generateRules(frequentItemsets, minConfidence)`.
+   Split each frequent itemset into antecedent and consequent **both ways**, compute
+   confidence for each direction, and keep the rules that pass the threshold.
+5. **Threshold filtering.** The two sliders feed `minSupport` and `minConfidence`.
+   The Rules table must contain exactly the rules that satisfy both.
+6. **Selected-rule display.** Clicking a rule must show it in the detail panel, and
+   the **Reverse direction** button must show `B → A` with its own recomputed
+   confidence and lift. Demonstrate that confidence changes with direction while
+   lift does not.
+7. **Zero-denominator handling.** If `count(A) === 0` or `count(B) === 0`, the
+   metric is undefined; the detail panel must show an explicit inline note instead
+   of printing `Infinity` or `NaN`. (With well-formed generated rules this cannot
+   happen — implement it defensively anyway.)
+
+Do not change `data.js`, `index.html`, or `style.css` beyond what is needed to
+make your implementation work. Keep all code and comments in English.
+
+### 4.2 Business & Algorithmic Analysis
+
+Answer in the course report (see §7), using numbers produced by your own code:
+
+1. **One useful rule.** Report a rule with lift comfortably above 1 and an
+   antecedent count large enough to be actionable. State the business action you
+   would take (cross-sell, bundle, recommendation slot) and why the lift — not the
+   confidence alone — supports it.
+2. **One misleading or weak rule.** Report a rule that looks strong on confidence
+   but is weak or vacuous: for example, a very high-confidence rule whose **lift is
+   close to 1**, or a rule whose antecedent is so frequent that the rule is trivially
+   satisfied. Explain what makes it misleading and what a naive reading would get wrong.
+   *(Anchor fact for this discussion: the most frequent item,
+   `85123A` — WHITE HANGING HEART T-LIGHT HOLDER — appears in 1,959 of 17,080
+   baskets, i.e. 11.47%. It is frequent, but it is not in every basket, so
+   "high confidence" alone does not imply an informative rule.)*
+3. **Threshold sensitivity.** Run the miner with at least two settings (for example
+   1% vs 3% support; 30% vs 60% confidence) and report how the number of frequent
+   itemsets and rules changes. Explain the direction of the effect in terms of
+   downward closure.
+4. **Cross-sell / bundle use case with a limitation.** Describe one concrete
+   bundle or "customers who bought A also bought B" feature you would ship, and
+   state its most important limitation (sparsity of long baskets, seasonality,
+   wholesale-vs-retail mix in this dataset, or the fact that a rule is a frequency
+   statement about the observed period only).
+5. **Association is not causation.** Explain why `A → B` does not mean that
+   promoting `A` causes sales of `B`, and give a plausible confounding explanation
+   for the rule you chose in item 1.
+6. **Validation plan (no timestamps in the exported data).** The source log has an
+   `InvoiceDate` column, but `week4/data.js` exports baskets only (grouped by
+   `InvoiceNo`), so the starter has **no usable timestamp**. **Do not simulate
+   temporal data.** Instead, propose a validation plan: for example, a held-out
+   period split, an A/B test in which the bundle is shown to a treatment group and
+   the incremental attach rate is compared with a control group, and the decision
+   rule you would use to accept or reject the rule. State clearly that the plan
+   requires data the starter does not contain.
+
+---
+
+## 5. Definitions
+
+For an itemset `X`, let `count(X)` be the number of baskets containing every item
+in `X`, and let `N` be the total number of baskets (`N_BASKETS` in `data.js`).
+
+```
+support(A → B)    = count(A ∪ B) / N
+confidence(A → B) = count(A ∪ B) / count(A)
+lift(A → B)       = confidence(A → B) / [ count(B) / N ]
+```
+
+Notes:
+
+- `support` is the share of all baskets that contain A and B together. It measures
+  how often the pattern occurs, not how strong the link is.
+- `confidence` is the conditional probability of B given A. It is **not symmetric**:
+  `confidence(A → B)` and `confidence(B → A)` generally differ.
+- `lift` compares the observed co-occurrence with what independence would predict.
+  `lift = 1` means A and B are independent, `lift > 1` means they co-occur more than
+  chance, `lift < 1` means less than chance. Lift **is symmetric**:
+  `lift(A → B) = lift(B → A)`.
+- The two denominators that can be zero are `N` (never zero here) and `count(A)`
+  (zero when the antecedent never occurs). Both must be guarded.
+
+---
+
+## 6. Implementation & analysis tasks
+
+1. Read `week4/script.js` and identify the two `TODO(hw4)` stubs, the provided
+   metric helpers, and the test harness.
+2. Run the page, press **Run tests**, and record the baseline pass / fail / pending counts.
+3. Implement `findFrequentItemsets` with Apriori (level-wise candidate generation
+   plus downward-closure pruning) or an equivalent miner.
+4. Implement `generateRules`, including both rule directions and confidence filtering.
+5. Confirm that the two `TODO(hw4)` tests now report `PASS` and that the fixture's
+   `lift = 1`, `lift > 1`, and `lift < 1` cases match the hand-computed values in
+   `tinyWorkedExample`.
+6. Run the miner on the real dataset at two threshold settings and save the rule
+   tables you will cite.
+7. Hand-compute support, confidence, and lift for **one** rule from the real data
+   directly from the raw counts, and confirm it against the number the page shows.
+8. Answer the six analysis questions in §4.2, citing your own computed numbers.
+9. Verify every citation you use: check that the paper, URL, authors, and year are
+   real before submitting (see §8).
+
+---
+
+## 7. Submission instructions
+
+Submit the **modified `week4/` directory** containing:
+
+| File | Role |
+|---|---|
+| `week4/data.js` | cleaned dataset (provided, do not modify) |
+| `week4/script.js` | your implementation of the two `TODO(hw4)` functions |
+| `week4/index.html` | page structure (provided) |
+| `week4/style.css` | styling (provided) |
+| `week4/readme.md` | this file |
+
+Plus the course report (IEEE-aligned, per the homework guidelines) that answers
+§4.2.
+
+- **No Jupyter notebook** (`.ipynb`) is part of this deliverable.
+- **No separate memo** is required; the analysis belongs in the report.
+- **No Python** is part of this deliverable. `tools/build_week4_data.py` is the
+  one-off dataset generator used by the instructor; it is not a student deliverable
+  and must not be submitted.
+- Do not commit generated artefacts, virtual environments, or log files.
+
+---
+
+## 8. Grading criteria
+
+Grading follows the course homework guidelines, **§8 — Rubric Criteria in Detail**
+(course repository path: `docs/homework-guidelines/guidelines.md`). The two
+criteria are **binary** (0 or 1) and combine into a per-assignment score of
+**0, 1, or 2**:
+
+- **c1 — Understanding.** Clear problem statement; all references valid;
+  attribution accurate. A hallucinated citation, a broken reference URL, or a
+  fabricated author/year is a **Gate 0** failure of c1.
+- **c2 — AI Management.** The solution works (the page runs and the table matches
+  the code output); the reasoning is accurate; and verification is cited (a
+  hand-computed metric, a re-run, a source read beyond the abstract, or a
+  cross-check of a number against the code).
+
+Read §10 of the same guidelines for the **Gate 0** failure modes. The ones that
+apply most directly here:
+
+- a **hallucinated citation** (a paper that does not exist) — including the UCI
+  source reference;
+- **fabricated verification** — claiming you hand-computed or re-ran something you
+  did not;
+- a **broken solution** — the page does not run, or the numbers shown do not match
+  the code's own output.
+
+If you cannot verify a critical output, say so honestly in the report's AI-usage
+section rather than claiming verification you did not perform.
+
+---
+
+*Generated 2026-09-29 from HW4 work order.*
