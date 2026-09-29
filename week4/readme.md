@@ -20,8 +20,8 @@ By the end of this assignment you should be able to:
   downward-closure property: every subset of a frequent itemset is frequent.
 - Generate **candidate rules in both directions** (`A → B` and `B → A`) and show
   that confidence is *not* symmetric while lift *is*.
-- Filter a rule list with **support / confidence thresholds** and describe how the
-  list changes as the thresholds move.
+- Filter a rule list with **support / confidence thresholds** and a **positive-lift**
+  filter, and describe how each filter changes the list of rules you keep.
 - Distinguish a **genuinely useful rule** from a **misleading one** that only looks
   good because one item is very frequent.
 - Reason about **association versus causation**, and propose a **validation plan**
@@ -158,14 +158,18 @@ Answer in the course report (see §7), using numbers produced by your own code:
 5. **Association is not causation.** Explain why `A → B` does not mean that
    promoting `A` causes sales of `B`, and give a plausible confounding explanation
    for the rule you chose in item 1.
-6. **Validation plan (no timestamps in the exported data).** The source log has an
-   `InvoiceDate` column, but the exported dataset contains baskets only (grouped
-   by `InvoiceNo`), so the starter has **no usable timestamp**. **Do not simulate
-   temporal data.** Instead, propose a validation plan: for example, a held-out
-   period split, an A/B test in which the bundle is shown to a treatment group and
-   the incremental attach rate is compared with a control group, and the decision
-   rule you would use to accept or reject the rule. State clearly that the plan
-   requires data the starter does not contain.
+6. **Validation plan (no usable timestamps in the exported data).** The source log
+   has an `InvoiceDate` column, but the exported dataset contains baskets only
+   (grouped by `InvoiceNo`), so the starter has **no usable per-basket timestamp**.
+   **Do not simulate temporal data.** Propose a stability check on a **later time
+   period** — for example, a held-out period split, an A/B test in which the bundle
+   is shown to a treatment group and the incremental attach rate is compared with a
+   control group, and the decision rule you would use to accept or reject the rule.
+   Describe how you would use such data to test whether the rule still holds before
+   deploying. If you had access to later-period data, describe how you would test
+   the rule's stability. If not, describe the smallest experiment that would let
+   you measure it. State clearly that the plan requires data the starter does not
+   contain.
 
 ---
 
