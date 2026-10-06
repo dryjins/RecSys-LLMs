@@ -1,0 +1,330 @@
+/* week5/style.css — HW5 matrix-factorization starter.
+   Neutral palette on a white canvas, readable type, tabular numbers,
+   single column under 760px. No external fonts. */
+
+:root {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --inset: #f2f4f7;
+  --border: #d5d9e0;
+  --text: #1c2128;
+  --muted: #5b6472;
+  --accent: #0f6e6e;
+  --accent-hover: #0b5656;
+  --accent-contrast: #ffffff;
+  --warning: #7a4b00;
+  --warning-bg: #fff5e0;
+  --error: #8a1c1c;
+  --error-bg: #fdecec;
+  --focus: #b4530a;
+  --shadow: 0 1px 2px rgba(28, 33, 40, 0.08), 0 4px 12px rgba(28, 33, 40, 0.06);
+  --radius: 8px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+h1, h2, h3 {
+  line-height: 1.25;
+  margin: 0 0 0.5rem;
+}
+
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.15rem; margin-top: 0; }
+h3 { font-size: 1rem; margin-top: 1.25rem; margin-bottom: 0.4rem; }
+
+p { margin: 0 0 0.75rem; }
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  background: var(--inset);
+  padding: 0.05em 0.3em;
+  border-radius: 4px;
+}
+
+/* --- layout ------------------------------------------------------------- */
+
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem 1.25rem 1rem;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+  max-width: 68ch;
+}
+
+.note {
+  background: var(--inset);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 0;
+  max-width: 68ch;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+}
+
+/* --- status ------------------------------------------------------------- */
+
+.status {
+  background: var(--inset);
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  min-height: 2.5rem;
+  margin: 0;
+}
+
+.status-line {
+  background: var(--inset);
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.error {
+  background: var(--error-bg);
+  color: var(--error);
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+.load-error {
+  background: var(--warning-bg);
+  color: var(--warning);
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* --- controls ----------------------------------------------------------- */
+
+.control-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.control {
+  margin-bottom: 1rem;
+  min-width: 0;
+}
+
+.control-grid .control {
+  margin-bottom: 0;
+}
+
+.control label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.control input,
+.control select {
+  width: 100%;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin: 0.25rem 0 0;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+button {
+  font: inherit;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+button.secondary {
+  background: var(--surface);
+  color: var(--accent);
+}
+
+button.secondary:hover {
+  background: var(--inset);
+  color: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 1px;
+}
+
+/* --- tables and lists --------------------------------------------------- */
+
+.summary-list {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.25rem 1rem;
+  margin: 0;
+}
+
+.summary-list dt {
+  font-weight: 600;
+}
+
+.summary-list dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  margin-top: 0.5rem;
+}
+
+.data-table th,
+.data-table td {
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.data-table th {
+  background: var(--inset);
+  font-weight: 600;
+}
+
+.data-table td.num,
+.data-table th.num,
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table tr.best-epoch td {
+  background: #dff0ee;
+  font-weight: 600;
+}
+
+.recommendation-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.5rem;
+}
+
+.recommendation-list li {
+  margin-bottom: 0.25rem;
+}
+
+.rec-title {
+  font-weight: 500;
+}
+
+.rec-score {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- log and states ----------------------------------------------------- */
+
+.test-log {
+  background: var(--inset);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  max-height: 22rem;
+  overflow: auto;
+  margin: 0;
+}
+
+.empty-state {
+  color: var(--muted);
+  font-style: italic;
+  margin: 0;
+}
+
+/* --- responsive --------------------------------------------------------- */
+
+@media (max-width: 760px) {
+  main {
+    padding: 0.75rem;
+  }
+
+  .control-grid {
+    grid-template-columns: 1fr;
+  }
+}
