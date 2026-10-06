@@ -101,12 +101,12 @@ Because this is a plain (classic) script load, TensorFlow.js exposes a global
 **`tf`** object that `week5/script.js` can use directly — no module import is
 needed.
 
-### 4.2 The required approach: tensor operations, not array loops
+### 4.2 Use TensorFlow.js (required)
 
-Unless you take the explicit alternative in §4.3, implement the
-**matrix-factorization training** and the **batched scoring** with TensorFlow.js
-tensor operations rather than hand-written JavaScript loops over rating arrays.
-The six stubs expect these APIs:
+Implement the **matrix-factorization training** and the **batched scoring** with
+TensorFlow.js tensor operations rather than hand-written JavaScript loops over
+rating arrays. TensorFlow.js is the GPU-accelerated path expected for this
+assignment. The six stubs expect these APIs:
 
 | Purpose | API |
 |---|---|
@@ -122,20 +122,7 @@ The six stubs expect these APIs:
 The result is the same algorithm as a handwritten implementation, but each
 mini-batch is one tensor operation executed on the GPU where possible.
 
-### 4.3 The alternative: a different GPU-accelerated path
-
-If you prefer, you may research and use a **different GPU-accelerated compute path
-in the browser** — for example a WebGL/WebGPU compute library, or a WASM/WebGPU
-tensor library other than TensorFlow.js. In that case you must:
-
-- **say which library and why** in your report's AI-usage / method section, and
-- keep the **same algorithmic contract**: 16-dimensional user and movie factors,
-  dot-product prediction, and **batched** training updates.
-
-The rest of this assignment (splitting, checkpoint selection, Top-10, Recall@10)
-is unchanged.
-
-### 4.4 Practical points
+### 4.3 Practical points
 
 - **Select the backend and report it.** `initTf()` in `script.js` prefers WebGL,
   falls back to CPU, and writes the chosen backend into `#tf-status` via
