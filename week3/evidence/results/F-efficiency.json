@@ -1,0 +1,298 @@
+{
+ "section": "F-efficiency",
+ "facts": {
+  "note": "Timings are wall-clock in the verification runtime (JavaScriptCore), not a browser. They describe this dataset and these history sizes only.",
+  "warmRepeats": 3,
+  "slowestUserTop5": 2.64,
+  "slowestItemTop5": 472.3,
+  "byHistorySize": [
+   {
+    "userId": 19,
+    "historySize": 20,
+    "maskedItemId": 4,
+    "userPrediction": {
+     "coldMs": 0.62,
+     "warmMedianMs": 0.28,
+     "warmMinMs": 0.28,
+     "warmMaxMs": 0.3
+    },
+    "itemPrediction": {
+     "coldMs": 0.3,
+     "warmMedianMs": 0.3,
+     "warmMinMs": 0.26,
+     "warmMaxMs": 0.3
+    },
+    "userTop5": {
+     "coldMs": 1.46,
+     "warmMedianMs": 1.42,
+     "warmMinMs": 1.36,
+     "warmMaxMs": 1.46
+    },
+    "itemTop5": {
+     "coldMs": 17.24,
+     "warmMedianMs": 16.5,
+     "warmMinMs": 14.34,
+     "warmMaxMs": 17.02
+    },
+    "top5ItemCost": 17.92
+   },
+   {
+    "userId": 100,
+    "historySize": 59,
+    "maskedItemId": 344,
+    "userPrediction": {
+     "coldMs": 0.62,
+     "warmMedianMs": 0.26,
+     "warmMinMs": 0.26,
+     "warmMaxMs": 0.34
+    },
+    "itemPrediction": {
+     "coldMs": 0.22,
+     "warmMedianMs": 0.44,
+     "warmMinMs": 0.28,
+     "warmMaxMs": 0.46
+    },
+    "userTop5": {
+     "coldMs": 0.96,
+     "warmMedianMs": 0.8,
+     "warmMinMs": 0.8,
+     "warmMaxMs": 0.82
+    },
+    "itemTop5": {
+     "coldMs": 29.94,
+     "warmMedianMs": 28.78,
+     "warmMinMs": 28.56,
+     "warmMaxMs": 30.58
+    },
+    "top5ItemCost": 29.58
+   },
+   {
+    "userId": 200,
+    "historySize": 216,
+    "maskedItemId": 222,
+    "userPrediction": {
+     "coldMs": 1.32,
+     "warmMedianMs": 1.28,
+     "warmMinMs": 1.08,
+     "warmMaxMs": 1.34
+    },
+    "itemPrediction": {
+     "coldMs": 1.2,
+     "warmMedianMs": 1.04,
+     "warmMinMs": 1,
+     "warmMaxMs": 1.1
+    },
+    "userTop5": {
+     "coldMs": 1.3,
+     "warmMedianMs": 1.22,
+     "warmMinMs": 1.22,
+     "warmMaxMs": 1.28
+    },
+    "itemTop5": {
+     "coldMs": 159.54,
+     "warmMedianMs": 157.9,
+     "warmMinMs": 155.06,
+     "warmMaxMs": 188.32
+    },
+    "top5ItemCost": 159.12
+   },
+   {
+    "userId": 1,
+    "historySize": 272,
+    "maskedItemId": 61,
+    "userPrediction": {
+     "coldMs": 3.3,
+     "warmMedianMs": 1.02,
+     "warmMinMs": 1,
+     "warmMaxMs": 1.3
+    },
+    "itemPrediction": {
+     "coldMs": 1.02,
+     "warmMedianMs": 1,
+     "warmMinMs": 1,
+     "warmMaxMs": 1.06
+    },
+    "userTop5": {
+     "coldMs": 9.44,
+     "warmMedianMs": 2.64,
+     "warmMinMs": 2.56,
+     "warmMaxMs": 2.82
+    },
+    "itemTop5": {
+     "coldMs": 236.88,
+     "warmMedianMs": 222.68,
+     "warmMinMs": 199.02,
+     "warmMaxMs": 244.86
+    },
+    "top5ItemCost": 225.32
+   },
+   {
+    "userId": 405,
+    "historySize": 737,
+    "maskedItemId": 56,
+    "userPrediction": {
+     "coldMs": 2.64,
+     "warmMedianMs": 2.16,
+     "warmMinMs": 2.12,
+     "warmMaxMs": 2.3
+    },
+    "itemPrediction": {
+     "coldMs": 2.4,
+     "warmMedianMs": 2.26,
+     "warmMinMs": 2.12,
+     "warmMaxMs": 2.32
+    },
+    "userTop5": {
+     "coldMs": 1.94,
+     "warmMedianMs": 1.88,
+     "warmMinMs": 1.72,
+     "warmMaxMs": 2.08
+    },
+    "itemTop5": {
+     "coldMs": 418.16,
+     "warmMedianMs": 472.3,
+     "warmMinMs": 423.4,
+     "warmMaxMs": 512.82
+    },
+    "top5ItemCost": 474.18
+   }
+  ]
+ },
+ "summary": {
+  "passed": 26,
+  "failed": 0,
+  "total": 26,
+  "checks": [
+   {
+    "name": "user 1 userPrediction timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":3.3,\"warmMedianMs\":1.02,\"warmMinMs\":1,\"warmMaxMs\":1.3}"
+   },
+   {
+    "name": "user 1 itemPrediction timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":1.02,\"warmMedianMs\":1,\"warmMinMs\":1,\"warmMaxMs\":1.06}"
+   },
+   {
+    "name": "user 1 userTop5 timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":9.44,\"warmMedianMs\":2.64,\"warmMinMs\":2.56,\"warmMaxMs\":2.82}"
+   },
+   {
+    "name": "user 1 itemTop5 timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":236.88,\"warmMedianMs\":222.68,\"warmMinMs\":199.02,\"warmMaxMs\":244.86}"
+   },
+   {
+    "name": "user 19 userPrediction timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":0.62,\"warmMedianMs\":0.28,\"warmMinMs\":0.28,\"warmMaxMs\":0.3}"
+   },
+   {
+    "name": "user 19 itemPrediction timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":0.3,\"warmMedianMs\":0.3,\"warmMinMs\":0.26,\"warmMaxMs\":0.3}"
+   },
+   {
+    "name": "user 19 userTop5 timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":1.46,\"warmMedianMs\":1.42,\"warmMinMs\":1.36,\"warmMaxMs\":1.46}"
+   },
+   {
+    "name": "user 19 itemTop5 timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":17.24,\"warmMedianMs\":16.5,\"warmMinMs\":14.34,\"warmMaxMs\":17.02}"
+   },
+   {
+    "name": "user 100 userPrediction timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":0.62,\"warmMedianMs\":0.26,\"warmMinMs\":0.26,\"warmMaxMs\":0.34}"
+   },
+   {
+    "name": "user 100 itemPrediction timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":0.22,\"warmMedianMs\":0.44,\"warmMinMs\":0.28,\"warmMaxMs\":0.46}"
+   },
+   {
+    "name": "user 100 userTop5 timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":0.96,\"warmMedianMs\":0.8,\"warmMinMs\":0.8,\"warmMaxMs\":0.82}"
+   },
+   {
+    "name": "user 100 itemTop5 timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":29.94,\"warmMedianMs\":28.78,\"warmMinMs\":28.56,\"warmMaxMs\":30.58}"
+   },
+   {
+    "name": "user 200 userPrediction timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":1.32,\"warmMedianMs\":1.28,\"warmMinMs\":1.08,\"warmMaxMs\":1.34}"
+   },
+   {
+    "name": "user 200 itemPrediction timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":1.2,\"warmMedianMs\":1.04,\"warmMinMs\":1,\"warmMaxMs\":1.1}"
+   },
+   {
+    "name": "user 200 userTop5 timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":1.3,\"warmMedianMs\":1.22,\"warmMinMs\":1.22,\"warmMaxMs\":1.28}"
+   },
+   {
+    "name": "user 200 itemTop5 timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":159.54,\"warmMedianMs\":157.9,\"warmMinMs\":155.06,\"warmMaxMs\":188.32}"
+   },
+   {
+    "name": "user 405 userPrediction timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":2.64,\"warmMedianMs\":2.16,\"warmMinMs\":2.12,\"warmMaxMs\":2.3}"
+   },
+   {
+    "name": "user 405 itemPrediction timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":2.4,\"warmMedianMs\":2.26,\"warmMinMs\":2.12,\"warmMaxMs\":2.32}"
+   },
+   {
+    "name": "user 405 userTop5 timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":1.94,\"warmMedianMs\":1.88,\"warmMinMs\":1.72,\"warmMaxMs\":2.08}"
+   },
+   {
+    "name": "user 405 itemTop5 timing is measurable and ordered",
+    "passed": true,
+    "detail": "{\"coldMs\":418.16,\"warmMedianMs\":472.3,\"warmMinMs\":423.4,\"warmMaxMs\":512.82}"
+   },
+   {
+    "name": "at least five fixed users with distinct history sizes",
+    "passed": true,
+    "detail": "sizes 272, 20, 59, 216, 737"
+   },
+   {
+    "name": "user 1 returns five recommendations from both methods",
+    "passed": true,
+    "detail": "five each"
+   },
+   {
+    "name": "user 19 returns five recommendations from both methods",
+    "passed": true,
+    "detail": "five each"
+   },
+   {
+    "name": "user 100 returns five recommendations from both methods",
+    "passed": true,
+    "detail": "five each"
+   },
+   {
+    "name": "user 200 returns five recommendations from both methods",
+    "passed": true,
+    "detail": "five each"
+   },
+   {
+    "name": "user 405 returns five recommendations from both methods",
+    "passed": true,
+    "detail": "five each"
+   }
+  ]
+ }
+}

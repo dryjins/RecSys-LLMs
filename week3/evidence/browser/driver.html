@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>A03 browser driver</title>
+</head>
+<body>
+<!--
+  Same-origin driver for the real application. It loads /index.html in an
+  iframe, drives the actual controls, inspects the rendered DOM, and POSTs a
+  JSON report to the local server. No webdriver or selenium required.
+-->
+<iframe id="app" src="/index.html" width="100%" height="900"></iframe>
+<pre id="report">running</pre>
+<script>
+const checks = [];
+const consoleErrors = [];
+const windowErrors = [];
+const diagnostics = { lastStatus: null, frameReadyState: null, frameHref: null, frameBodyText: null };
+
+function check(name, condition, detail) {
+    checks.push({ name, passed: Boolean(condition), detail: detail === undefined ? '' : String(detail) });
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function waitFor(predicate, label, timeoutMs) {
+    const deadline = Date.now() + (timeoutMs || 120000);
+    const frame = document.getElementById('app');
+    while (Date.now() < deadline) {
+        try {
+            if (predicate()) {
+                return true;
+            }
+        } catch (error) {
+            /* keep waiting */
+        }
+        try {
+            const doc = frame.contentDocument;
+            if (doc) {
+                const status = doc.getElementById('status');
+                diagnostics.lastStatus = status ? status.textContent : null;
+                diagnostics.frameReadyState = doc.readyState;
+                diagnostics.frameHref = doc.location ? doc.location.href : null;
+                diagnostics.frameBodyText = (doc.body ? doc.body.textContent : '').slice(0, 200);
+            }
+        } catch (error) {
+            diagnostics.lastStatus = 'cross-origin: ' + error.message;
+        }
+        await sleep(100);
+    }
+    throw new Error('timed out waiting for ' + label);
+}
+
+function columnRows(doc, id) {
+    return [...doc.querySelectorAll('#' + id + ' li.rec-item')];
+}
+
+function meta(container, doc) {
+    const status = doc.getElementById('status');
+    return { status: status ? status.textContent : '', width: doc.documentElement.clientWidth };
+}
+
+async function run() {
+    const frame = document.getElementById('app');
+    // An iframe fires load for about:blank before index.html has been parsed,
+    // so wait for the real application document instead of the first load
+    // event, otherwise every later lookup targets a discarded document.
+    await waitFor(
+        () => frame.contentDocument && frame.contentDocument.getElementById('user-select') !== null,
+        'the application document', 120000);
+    const win = frame.contentWindow;
+    const doc = frame.contentDocument;
+    win.addEventListener('error', event => windowErrors.push(String(event.message)));
+    const originalError = win.console.error;
+    win.console.error = function (...args) {
+        consoleErrors.push(args.map(String).join(' '));
+        if (originalError) {
+            originalError.apply(win.console, args);
+        }
+    };
+
+    // 1. The application finished loading its data.
+    await waitFor(
+        () => doc.getElementById('status') &&
+            /Loaded \d+ users, \d+ movies, \d+ ratings/.test(doc.getElementById('status').textContent),
+        'data load', 120000);
+    const ready = doc.getElementById('status').textContent;
+    check('app reports the loaded dataset', /Loaded 943 users, 1682 movies, 100000 ratings\./.test(ready), ready);
+
+    // 2. Dropdowns are fully populated.
+    const userSelect = doc.getElementById('user-select');
+    const movieSelect = doc.getElementById('movie-select');
+    check('user dropdown lists 943 users plus a placeholder',
+        userSelect.options.length === 944, userSelect.options.length);
+    check('movie dropdown lists 1682 movies plus a placeholder',
+        movieSelect.options.length === 1683, movieSelect.options.length);
+
+    // 3. Genre text is correct and free of mojibake.
+    let replacementCount = 0;
+    let emptyParenthetical = 0;
+    let unknownLeakedIntoGenres = 0;
+    let extendedCount = 0;
+    for (const option of movieSelect.options) {
+        const text = option.textContent;
+        if (text.indexOf('�') >= 0) {
+            replacementCount++;
+        }
+        if (/\(\s*\)/.test(text)) {
+            emptyParenthetical++;
+        }
+        if (/, unknown/.test(text) || /unknown\)/.test(text)) {
+            unknownLeakedIntoGenres++;
+        }
+        if (/[^\x00-\x7F]/.test(text)) {
+            extendedCount++;
+        }
+    }
+    check('no U+FFFD in any dropdown option', replacementCount === 0, replacementCount);
+    check('no empty genre parenthetical', emptyParenthetical === 0, emptyParenthetical);
+    check('"unknown" never appears as a genre label', unknownLeakedIntoGenres === 0, unknownLeakedIntoGenres);
+    check('extended-character titles render (Latin-1 decoded)', extendedCount >= 9, extendedCount);
+
+    // 4. Run the real interaction for several fixed users.
+    const button = doc.getElementById('recommend-btn');
+    const tested = [];
+    for (const userId of [1, 19, 100, 200, 405]) {
+        userSelect.value = String(userId);
+        userSelect.dispatchEvent(new win.Event('change', { bubbles: true }));
+        const started = performance.now();
+        button.click();
+        await waitFor(
+            () => columnRows(doc, 'user-based-result').length > 0 &&
+                columnRows(doc, 'item-based-result').length > 0 &&
+                /^Done in/.test(doc.getElementById('status').textContent),
+            'recommendations for user ' + userId, 120000);
+        const elapsed = performance.now() - started;
+        const userRows = columnRows(doc, 'user-based-result');
+        const itemRows = columnRows(doc, 'item-based-result');
+        check('user ' + userId + ' renders exactly 5 user-based recommendations',
+            userRows.length === 5, userRows.length);
+        check('user ' + userId + ' renders exactly 5 item-based recommendations',
+            itemRows.length === 5, itemRows.length);
+        const titles = userRows.map(row => row.querySelector('.rec-title').textContent);
+        check('user ' + userId + ' user-based titles are unique',
+            new Set(titles).size === titles.length, titles.join(' | '));
+        check('user ' + userId + ' renders a score and an evidence badge on every row',
+            userRows.every(row => /^\d+\.\d\d$/.test(row.querySelector('.rec-score').textContent) &&
+                /^(HIGH|MEDIUM|LOW|FALLBACK)$/.test(row.querySelector('.evidence').textContent)),
+            userRows[0] ? userRows[0].textContent : 'none');
+        tested.push({ userId, elapsedMs: Math.round(elapsed), userTitles: titles });
+    }
+
+    // 5. Target prediction panel, additive to the Top-5 lists.
+    // ratingMatrix is a top-level `let`, so it lives in the window's lexical
+    // scope rather than on the window object; eval is the only way to read it.
+    const ratedItemId = win.eval(
+        '(function () { var row = ratingMatrix[1];' +
+        ' for (var i = 1; i < row.length; i++) { if (row[i] > 0) { return i; } }' +
+        ' return 0; })()');
+    check('the driver can read a rated item for user 1', ratedItemId > 0, ratedItemId);
+    userSelect.value = '1';
+    userSelect.dispatchEvent(new win.Event('change', { bubbles: true }));
+    movieSelect.value = String(ratedItemId);
+    movieSelect.dispatchEvent(new win.Event('change', { bubbles: true }));
+    button.click();
+    await waitFor(
+        () => doc.querySelectorAll('#target-result .prediction-card').length === 2,
+        'target prediction cards', 120000);
+    const cards = [...doc.querySelectorAll('#target-result .prediction-card')];
+    check('target panel renders both prediction cards', cards.length === 2, cards.length);
+    check('target panel still leaves the Top-5 lists in place',
+        columnRows(doc, 'user-based-result').length === 5 &&
+        columnRows(doc, 'item-based-result').length === 5, 'additive');
+    const cardText = cards.map(card => card.textContent);
+    check('each prediction card shows a numeric baseline',
+        cardText.every(text => /Baseline\d/.test(text.replace(/\s/g, ''))), cardText.join(' || '));
+    check('each prediction card shows contributors, denominator and overlap',
+        cardText.every(text => /Contributors/.test(text) && /Denominator/.test(text) && /Median overlap/.test(text)),
+        'details present');
+    const targetText = doc.getElementById('target-result').textContent;
+    check('target panel reports the observed rating as held out',
+        /held out of the calculation/.test(targetText),
+        targetText.replace(/\s+/g, ' ').slice(0, 180));
+
+    // 6. No target movie selected clears the panel without clearing the lists.
+    movieSelect.value = '';
+    movieSelect.dispatchEvent(new win.Event('change', { bubbles: true }));
+    button.click();
+    await waitFor(
+        () => /Select a target movie/.test(doc.getElementById('target-result').textContent),
+        'target panel reset', 120000);
+    check('clearing the target movie leaves the Top-5 lists intact',
+        columnRows(doc, 'user-based-result').length === 5 &&
+        columnRows(doc, 'item-based-result').length === 5, 'still five each');
+
+    // 7. Keyboard reachability and a visible focus indicator.
+    button.focus();
+    const focusStyle = win.getComputedStyle(button);
+    const outlineWidth = parseFloat(focusStyle.outlineWidth || '0');
+    const hasFocusRing = outlineWidth > 0 || focusStyle.boxShadow !== 'none' ||
+        focusStyle.outlineStyle !== 'none';
+    check('the action button can take keyboard focus', doc.activeElement === button, doc.activeElement.id);
+    check('the action button has a visible focus indicator', hasFocusRing,
+        `outline ${focusStyle.outline} / box-shadow ${focusStyle.boxShadow}`);
+    for (const id of ['user-select', 'movie-select']) {
+        const element = doc.getElementById(id);
+        const style = win.getComputedStyle(element);
+        const width = parseFloat(style.outlineWidth || '0');
+        check('the ' + id + ' has a visible focus indicator',
+            width > 0 || style.boxShadow !== 'none', `outline ${style.outline}`);
+    }
+    check('the status region is a live polite region',
+        doc.getElementById('status').getAttribute('aria-live') === 'polite' &&
+        doc.getElementById('status').getAttribute('role') === 'status', 'aria-live polite');
+    check('every control has an associated label',
+        [...doc.querySelectorAll('select, button')].every(element =>
+            element.id === 'recommend-btn' || doc.querySelector(`label[for="${element.id}"]`) !== null),
+        'labels');
+
+    // 8. Responsive layout at the width Chrome was given.
+    const grid = doc.getElementById('result-box');
+    const columns = win.getComputedStyle(grid).gridTemplateColumns.split(' ').length;
+    const width = doc.documentElement.clientWidth;
+    const expectedColumns = width <= 640 ? 1 : 2;
+    check('the result grid matches the viewport width',
+        columns === expectedColumns,
+        `viewport ${width}px, ${columns} column(s), expected ${expectedColumns}`);
+
+    check('no uncaught window errors', windowErrors.length === 0, windowErrors.join(' | '));
+    check('no console errors during interaction', consoleErrors.length === 0, consoleErrors.join(' | '));
+
+    return {
+        section: 'H-browser-verification',
+        userAgent: win.navigator.userAgent,
+        viewportWidth: width,
+        readyMessage: ready,
+        interactions: tested,
+        summary: {
+            passed: checks.filter(entry => entry.passed).length,
+            failed: checks.filter(entry => !entry.passed).length,
+            total: checks.length,
+            checks
+        }
+    };
+}
+
+run().then(report => {
+    return fetch('/__report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(report)
+    });
+}).catch(error => {
+    const report = {
+        section: 'H-browser-verification',
+        error: String(error) + (error && error.stack ? '\n' + error.stack : ''),
+        diagnostics,
+        consoleErrors,
+        windowErrors,
+        summary: { passed: 0, failed: checks.length, total: checks.length, checks }
+    };
+    return fetch('/__report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(report)
+    });
+});
+</script>
+</body>
+</html>

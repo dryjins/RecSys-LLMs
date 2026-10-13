@@ -1,0 +1,154 @@
+{
+ "section": "A-data-integrity",
+ "facts": {
+  "users": 943,
+  "movieRows": 1682,
+  "ratingRows": 100000,
+  "distinctCanonicalTitles": 1664,
+  "ratingValues": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "malformed": {
+   "itemRows": 0,
+   "ratingRows": 0
+  },
+  "matrixShape": {
+   "rows": 944,
+   "columns": 1683,
+   "float32": true
+  },
+  "nonZeroEntries": 100000,
+  "totalCells": 1588752,
+  "density": 0.06294248567429025,
+  "sparsity": 0.9370575143257097,
+  "extendedTitles": [
+   "Mis\u00e9rables, Les (1995)",
+   "Double vie de V\u00e9ronique, La (Double Life of Veronique, The) (1991)",
+   "C'est arriv\u00e9 pr\u00e8s de chez vous (1992)",
+   "N\u00e9nette et Boni (1996)",
+   "Contempt (M\u00e9pris, Le) (1963)",
+   "Metisse (Caf\u00e9 au Lait) (1993)",
+   "JLG/JLG - autoportrait de d\u00e9cembre (1994)",
+   "C\u00e9r\u00e9monie, La (1995)",
+   "\u00c1 k\u00f6ldum klaka (Cold Fever) (1994)"
+  ],
+  "corruptedTitles": 0,
+  "duplicateCanonicalPairs": 18,
+  "duplicateExamples": [
+   "chasing amy (1997) x2",
+   "kull the conqueror (1997) x2",
+   "ulee's gold (1997) x2"
+  ],
+  "unknownOnlyMovies": [
+   "unknown",
+   "Good Morning (1971)"
+  ],
+  "toyStoryGenres": [
+   "Animation",
+   "Children's",
+   "Comedy"
+  ],
+  "westernCount": 27
+ },
+ "summary": {
+  "passed": 18,
+  "failed": 0,
+  "total": 18,
+  "checks": [
+   {
+    "name": "943 users",
+    "passed": true,
+    "detail": "943"
+   },
+   {
+    "name": "1682 movie rows",
+    "passed": true,
+    "detail": "1682"
+   },
+   {
+    "name": "100000 ratings",
+    "passed": true,
+    "detail": "100000"
+   },
+   {
+    "name": "1664 distinct canonical titles",
+    "passed": true,
+    "detail": "1664"
+   },
+   {
+    "name": "rating values are exactly 1..5",
+    "passed": true,
+    "detail": "1,2,3,4,5"
+   },
+   {
+    "name": "0 malformed u.item rows",
+    "passed": true,
+    "detail": "0"
+   },
+   {
+    "name": "0 malformed u.data rows",
+    "passed": true,
+    "detail": "0"
+   },
+   {
+    "name": "matrix shape is 944 x 1683 of Float32Array",
+    "passed": true,
+    "detail": "all rows ok"
+   },
+   {
+    "name": "100000 non-zero matrix entries",
+    "passed": true,
+    "detail": "100000"
+   },
+   {
+    "name": "density and sparsity are complementary",
+    "passed": true,
+    "detail": "density 6.29% sparsity 93.71%"
+   },
+   {
+    "name": "9 extended-character titles",
+    "passed": true,
+    "detail": "9"
+   },
+   {
+    "name": "no U+FFFD in any title",
+    "passed": true,
+    "detail": "0"
+   },
+   {
+    "name": "18 duplicate canonical-title pairs",
+    "passed": true,
+    "detail": "18"
+   },
+   {
+    "name": "exactly two unknown-only movies",
+    "passed": true,
+    "detail": "[\"unknown\",\"Good Morning (1971)\"]"
+   },
+   {
+    "name": "\"unknown\" never appears as a genre",
+    "passed": true,
+    "detail": "0"
+   },
+   {
+    "name": "Toy Story genres are corrected",
+    "passed": true,
+    "detail": "Animation|Children's|Comedy"
+   },
+   {
+    "name": "Western is reachable",
+    "passed": true,
+    "detail": "27 westerns"
+   },
+   {
+    "name": "every genre label is one of the 18 named genres",
+    "passed": true,
+    "detail": "true"
+   }
+  ]
+ }
+}
