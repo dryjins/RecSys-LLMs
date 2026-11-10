@@ -160,6 +160,62 @@ def contexts_for(users, assets, profiles, history, features, pop, cutoff,
     return contexts, rankings
 
 
+def scan_recent_events(data_dir, cutoff, assets):
+    """Retained raw events strictly before the cutoff, under load_data's row policy.
+
+    Exact duplicate full rows are removed, negative transaction IDs (reconstructed
+    initial positions) are excluded, and only assets eligible at the cutoff are
+    kept.  No row at or after the cutoff enters the result.
+    """
+    seen, events = set(), defaultdict(list)
+    for row in rows(data_dir / 'transactions.csv'):
+        key = tuple(sorted(row.items()))
+        if key in seen:
+            continue
+        seen.add(key)
+        if int(row['transactionID']) < 0:
+            continue
+        timestamp = row['timestamp'][:10]
+        if timestamp < cutoff and row['ISIN'] in assets:
+            events[row['customerID']].append(
+                (timestamp, row['ISIN'], row['transactionType']))
+    return events
+
+
+def recency_rankings(contexts, pop, events, k=10):
+    # [E6] Latest past Buy (and Buy-or-Sell) dates per asset, ordered by
+    # (-last timestamp, ISIN) and filled from the same popularity order.
+    rankings = {}
+    for uid, context in contexts.items():
+        allowed = set(context['eligible_asset_ids'])
+        buy_last, any_last = {}, {}
+        for timestamp, isin, kind in events.get(uid, ()):
+            if isin not in allowed:
+                continue
+            previous = any_last.get(isin)
+            if previous is None or timestamp > previous:
+                any_last[isin] = timestamp
+            if kind == 'Buy':
+                previous = buy_last.get(isin)
+                if previous is None or timestamp > previous:
+                    buy_last[isin] = timestamp
+        pop_order = order({isin: pop[isin] for isin in allowed})
+        rankings[uid] = {}
+        for method, latest in (('latest_buy', buy_last),
+                               ('latest_buy_or_sell', any_last)):
+            prefix = sorted(latest, key=lambda isin: (
+                -date.fromisoformat(latest[isin]).toordinal(), isin))
+            chosen, chosen_set = prefix[:k], set(prefix[:k])
+            for isin in pop_order:
+                if len(chosen) >= k:
+                    break
+                if isin not in chosen_set:
+                    chosen.append(isin)
+                    chosen_set.add(isin)
+            rankings[uid][method] = chosen
+    return rankings
+
+
 def read_responses(path):
     result = {}
     if not path:
@@ -234,6 +290,10 @@ def main():
     pop = popularity_scores(history, assets)
     contexts, predictions = contexts_for(users, assets, profiles, history, features, pop,
                                         args.cutoff, args.candidate_count, args.exclude_seen)
+    events = scan_recent_events(args.data_dir, args.cutoff, assets)
+    recent = recency_rankings(contexts, pop, events)
+    for uid in users:
+        predictions[uid].update(recent[uid])
     protocol = {'teaching_defaults_not_official_grading_protocol': True,
                 'cutoff': args.cutoff, 'end_exclusive': end,
                 'users': users, 'cohort_selection': args.cohort,

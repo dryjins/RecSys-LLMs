@@ -1,4 +1,4 @@
-"""Frozen test vectors TV1-TV16 plus a temporal fixture for the FAR-Trans starter.
+"""Frozen test vectors TV1-TV23 plus a temporal fixture for the FAR-Trans starter.
 
 Standard library only. Run from this package folder:
 
@@ -113,6 +113,7 @@ def write_fixture(root, future_variant='base'):
         ['U1', 'C', '3', 'Buy', '2021-05-01', '100', '1', 'Branch', 'XATH'],
         ['U2', 'A', '1', 'Buy', '2021-04-01', '100', '1', 'Branch', 'XATH'],
         ['U2', 'D', '7', 'Buy', '2021-04-05', '100', '1', 'Branch', 'XATH'],
+        ['U2', 'B', '10', 'Sell', '2021-05-05', '100', '1', 'Branch', 'XATH'],
         ['U1', 'M', '8', 'Buy', '2021-04-01', '100', '1', 'Branch', 'XATH'],
         ['U1', 'N', '9', 'Buy', '2021-04-02', '100', '1', 'Branch', 'XATH'],
     ]
@@ -208,6 +209,80 @@ class FrozenVectors(unittest.TestCase):
         self.assertEqual(got['users'], 0)
         self.assertIsNone(got['ndcg_at_10'])
         self.assertIsNone(got['ndcg_at_10_nonempty'])
+
+
+class RecencyVectors(unittest.TestCase):
+    """TV17-TV22 pin E6 on hand-written past-only events."""
+
+    @staticmethod
+    def context(*eligible):
+        return {'eligible_asset_ids': list(eligible)}
+
+    @staticmethod
+    def pop(universe):
+        # Every eligible asset has popularity 0, so the fill order is ISIN ascending.
+        return {isin: 0 for isin in universe}
+
+    def rank(self, events, universe):
+        contexts = {'U1': self.context(*universe)}
+        return st.recency_rankings(contexts, self.pop(universe), events)['U1']
+
+    def test_tv17_latest_buy_and_buy_or_sell_differ_on_sell_only_asset(self):
+        events = {'U1': [('2021-01-01', 'A', 'Buy'), ('2021-01-02', 'B', 'Buy'),
+                         ('2021-01-03', 'A', 'Sell')]}
+        got = self.rank(events, 'ABCDEFGHIJKL')
+        # Buy A 2021-01-01, Buy B 2021-01-02, Sell A 2021-01-03.
+        self.assertEqual(got['latest_buy'][:2], ['B', 'A'])
+        self.assertEqual(got['latest_buy_or_sell'][:2], ['A', 'B'])
+
+    def test_tv18_short_prefix_is_filled_from_popularity(self):
+        events = {'U1': [('2021-01-01', 'A', 'Buy'), ('2021-01-02', 'B', 'Buy')]}
+        got = self.rank(events, 'ABCDEFGHIJKL')
+        self.assertEqual(got['latest_buy'][:3], ['B', 'A', 'C'])
+        self.assertEqual(len(got['latest_buy']), 10)
+        self.assertEqual(len(set(got['latest_buy'])), 10)
+        self.assertNotIn('A', got['latest_buy'][2:])
+
+    def test_tv23_cold_user_gets_popularity_list(self):
+        got = self.rank({'U1': []}, 'ABCDEFGHIJKL')
+        self.assertEqual(got['latest_buy'], list('ABCDEFGHIJ'))
+        self.assertEqual(got['latest_buy_or_sell'], list('ABCDEFGHIJ'))
+
+    def test_tv19_scan_keeps_only_retained_past_rows(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            duplicate = ['U1', 'A', '2', 'Buy', '2021-04-02', '100', '1', 'Branch', 'XATH']
+            write_csv(root / 'transactions.csv', TRANSACTION_HEADER, [
+                ['U1', 'A', '1', 'Buy', '2021-04-01', '100', '1', 'Branch', 'XATH'],
+                duplicate,
+                duplicate,
+                ['U1', 'B', '-1', 'Buy', '2021-04-03', '100', '1', 'Branch', 'XATH'],
+                ['U1', 'C', '3', 'Buy', '2021-06-05', '100', '1', 'Branch', 'XATH'],
+                ['U1', 'D', '4', 'Sell', '2021-06-01', '100', '1', 'Branch', 'XATH'],
+                ['U1', 'Z', '5', 'Buy', '2021-04-04', '100', '1', 'Branch', 'XATH'],
+            ])
+            events = st.scan_recent_events(root, CUTOFF, set('ABCDEFGHIJKL'))
+        self.assertEqual(events, {'U1': [('2021-04-01', 'A', 'Buy'),
+                                         ('2021-04-02', 'A', 'Buy')]})
+
+    def test_tv20_same_date_tie_breaks_by_isin(self):
+        events = {'U1': [('2021-01-01', 'C', 'Buy'), ('2021-01-01', 'A', 'Buy'),
+                         ('2021-01-01', 'B', 'Buy')]}
+        got = self.rank(events, 'ABCDEFGHIJKL')
+        self.assertEqual(got['latest_buy'][:3], ['A', 'B', 'C'])
+
+    def test_tv21_assets_outside_the_eligible_set_are_dropped(self):
+        events = {'U1': [('2021-01-01', 'Z', 'Buy'), ('2021-01-02', 'A', 'Buy')]}
+        got = self.rank(events, 'ABCDEFGHIJKL')
+        self.assertNotIn('Z', got['latest_buy'])
+        self.assertEqual(got['latest_buy'][0], 'A')
+
+    def test_tv22_latest_event_wins_per_asset(self):
+        events = {'U1': [('2021-01-01', 'A', 'Buy'), ('2021-01-05', 'B', 'Buy'),
+                         ('2021-01-09', 'A', 'Sell'), ('2021-01-03', 'C', 'Buy')]}
+        got = self.rank(events, 'ABCDEFGHIJKL')
+        self.assertEqual(got['latest_buy'][:3], ['B', 'C', 'A'])
+        self.assertEqual(got['latest_buy_or_sell'][0], 'A')
 
 
 class RankingValidation(unittest.TestCase):
@@ -335,6 +410,98 @@ class TemporalFixture(unittest.TestCase):
                             mutated_protocol['protocol_hash'])
         self.assertEqual(self.contexts(self.out),
                          self.contexts(self.root / 'mutated_out'))
+
+    # --- recency baselines (E6) ---------------------------------------------
+
+    def methods(self, out, method):
+        result = {}
+        for row in self.prediction_rows(out):
+            if row['method'] == method:
+                result.setdefault(row['user_id'], []).append((int(row['rank']), row['ISIN']))
+        return {uid: [isin for _, isin in sorted(rows)] for uid, rows in result.items()}
+
+    def test_recency_methods_are_present_and_full_ten(self):
+        for method in ('latest_buy', 'latest_buy_or_sell'):
+            rankings = self.methods(self.out, method)
+            self.assertEqual(set(rankings), {'U1', 'U2'})
+            for uid, ranking in rankings.items():
+                self.assertEqual(len(ranking), 10)
+                self.assertEqual(len(set(ranking)), 10)
+                self.assertLessEqual(set(ranking),
+                                     set(self.contexts(self.out)[uid]['eligible_asset_ids']))
+
+    def test_recency_latest_buy_uses_past_buy_dates_only(self):
+        # U1 buys A 2021-04-01, B 2021-04-02, C 2021-05-01; future rows are ignored.
+        self.assertEqual(self.methods(self.out, 'latest_buy')['U1'][:3], ['C', 'B', 'A'])
+
+    def test_recency_buy_or_sell_includes_sell_only_asset(self):
+        # U2 bought A and D, then sold B on 2021-05-05: B is Sell-only.
+        buy = self.methods(self.out, 'latest_buy')['U2']
+        either = self.methods(self.out, 'latest_buy_or_sell')['U2']
+        self.assertEqual(buy[:2], ['D', 'A'])
+        self.assertEqual(either[0], 'B')
+        self.assertEqual(either[1:3], ['D', 'A'])
+
+    def test_recency_shortlist_is_filled_from_popularity(self):
+        # U1 has three retained past buys, so the tail is the popularity order.
+        ranking = self.methods(self.out, 'latest_buy')['U1']
+        self.assertEqual(ranking[3:], ['D', 'E', 'F', 'G', 'H', 'I', 'J'])
+
+    def test_recency_cold_user_equals_popularity(self):
+        users = self.root / 'cold_e6_users.txt'
+        users.write_text('U3\n', encoding='utf-8')
+        proc, _ = self.run_cli('cold_e6', '--users-file', users)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        for method in ('popularity', 'latest_buy', 'latest_buy_or_sell'):
+            self.assertEqual(self.methods(self.root / 'cold_e6', method)['U3'],
+                             ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'], method)
+
+    def test_recency_respects_exclude_seen(self):
+        users = self.root / 'one_seen_user.txt'
+        users.write_text('U2\n', encoding='utf-8')
+        proc, _ = self.run_cli('seen', '--users-file', users, '--exclude-seen')
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        for method in ('latest_buy', 'latest_buy_or_sell'):
+            ranking = self.methods(self.root / 'seen', method)['U2']
+            self.assertNotIn('A', ranking, method)  # own past Buy
+            self.assertNotIn('D', ranking, method)  # own past Buy
+            self.assertEqual(len(ranking), 10, method)
+
+    def test_recency_lists_unchanged_by_future_mutation(self):
+        mutated = self.root / 'mutated_e6'
+        mutated.mkdir()
+        write_fixture(mutated, future_variant='mutated')
+        proc, _ = self.cli('run', '--output-dir', self.root / 'mutated_e6_out', data=mutated)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        for method in ('latest_buy', 'latest_buy_or_sell'):
+            self.assertEqual(self.methods(self.out, method),
+                             self.methods(self.root / 'mutated_e6_out', method), method)
+
+    def test_recency_helpers_have_no_truth_input(self):
+        import inspect
+        for function in (st.scan_recent_events, st.recency_rankings):
+            self.assertNotIn('truth', inspect.signature(function).parameters)
+        # The helper output depends only on contexts/events/popularity: passing the
+        # same inputs twice is deterministic and never consults the loader truth.
+        assets, profiles, history, truth, end, excluded = st.load_data(self.data, CUTOFF, 30)
+        events = st.scan_recent_events(self.data, CUTOFF, assets)
+        pop = st.popularity_scores(history, assets)
+        contexts = self.contexts(self.out)
+        first = st.recency_rankings(contexts, pop, events)
+        second = st.recency_rankings(contexts, pop, dict(events))
+        self.assertEqual(first, second)
+
+    def test_raw_scan_matches_loader_history(self):
+        assets, profiles, history, truth, end, excluded = st.load_data(self.data, CUTOFF, 30)
+        self.assertEqual(len((assets, profiles, history, truth, end, excluded)), 6)
+        events = st.scan_recent_events(self.data, CUTOFF, assets)
+        self.assertEqual(events['U1'], [('2021-04-01', 'A', 'Buy'),
+                                        ('2021-04-02', 'B', 'Buy'),
+                                        ('2021-05-01', 'C', 'Buy')])
+        # Negative row, exact duplicate and ineligible assets (M, N) are dropped.
+        self.assertEqual(excluded, {'exact_duplicate_rows': 1,
+                                    'reconstructed_initial_position_rows': 1})
+        self.assertNotIn('MUTATED_FUTURE_ASSET', {isin for _, isin, _ in events.get('U1', [])})
 
     # --- ranking behaviour --------------------------------------------------
 
@@ -527,7 +694,8 @@ class TemporalFixture(unittest.TestCase):
     def test_portable_cli_outside_workspace(self):
         proc, metrics = self.cli('run', '--output-dir', self.root / 'portable', isolated=True)
         self.assertEqual(proc.returncode, 0, proc.stderr)
-        self.assertEqual(set(metrics['methods']), {'cbf', 'popularity'})
+        self.assertEqual(set(metrics['methods']),
+                         {'cbf', 'popularity', 'latest_buy', 'latest_buy_or_sell'})
         self.assertEqual(metrics['methods']['cbf']['users'], 2)
         self.assertTrue((self.root / 'portable' / 'metrics.json').exists())
 

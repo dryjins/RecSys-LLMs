@@ -48,8 +48,9 @@ The script writes five files:
   SHA-256 of every source CSV plus a `protocol_hash` over the whole protocol;
 - `contexts.jsonl` — one redacted context per user (profile, history, candidates,
   eligible ids); it holds no truth label and no future row;
-- `predictions.csv` — `method, user_id, rank, ISIN` for `cbf`, `popularity` and,
-  when a plugin or response file is given, `custom`;
+- `predictions.csv` — `method, user_id, rank, ISIN` for the four provided
+  baselines `popularity`, `cbf`, `latest_buy`, `latest_buy_or_sell` and, when a
+  plugin or response file is given, `custom`;
 - `per_user.csv` — one row per `(user, method)` with `relevant_count` and
   `ndcg_at_10`;
 - `metrics.json` — the aggregate block and the excluded-row counts.
@@ -63,14 +64,29 @@ Warm cohort, 100 users, cutoff `2021-06-01`, label window `2021-06-01 … 2021-0
 |---|---:|---:|---:|---:|---:|
 | `cbf` | 100 | 11 | 89 | 0.020100011736078574 | 0.18272737941889614 |
 | `popularity` | 100 | 11 | 89 | 0.028590012799467643 | 0.25990920726788763 |
+| `latest_buy` | 100 | 11 | 89 | 0.027722649787649066 | 0.2520240889786279 |
+| `latest_buy_or_sell` | 100 | 11 | 89 | 0.027107048693904026 | 0.2464277153991275 |
 
 89 of 100 users have no future purchase in the window, so the primary mean is
 mostly the frozen `0.0` empty-truth convention (E3) and is **not** comparable with
-the nonempty mean. Both labels are always reported. The identity plugin
-(`extensions.py`) reproduces `cbf` for all 100 users, so its `custom` row equals the
-`cbf` row. Elapsed time is not written to any output; measure it externally
-(`/usr/bin/time`) if you need it — on the reference machine the command above takes
-about 2.6 s and roughly 520 MB peak RSS.
+the nonempty mean. Both labels are always reported. Those 89 empty-truth users are
+the hard case: they lower every all-user mean and they are **not** dropped.
+
+`popularity` is the non-personalised floor, not the only reference point. This task
+repeats past purchases often, so a recency ranking of the same past-only inputs is
+a necessary second reference. On **this 100-user demo slice** the measured ordering
+is `popularity` > `latest_buy` > `latest_buy_or_sell` > `cbf` on both means, i.e.
+the recency baselines sit between popularity and CBF; on the larger cohorts in the
+tables below they are the highest-scoring methods. Either way, popularity alone is
+not an adequate reference, and this is an observed ordering on the stated cohorts —
+**not** a claim that recency is best under all conditions. All four provided
+baselines must appear in a comparison table so a student change is not judged
+against popularity alone.
+
+The identity plugin (`extensions.py`) reproduces `cbf` for all 100 users, so its
+`custom` row equals the `cbf` row. Elapsed time is not written to any output;
+measure it externally (`/usr/bin/time`) if you need it — on the reference machine
+the command above takes about 7 s and roughly 580 MB peak RSS.
 
 These numbers depend on the cutoff and must not be compared with published
 FAR-Trans results. Raw-data SHA-256 values and `protocol_hash` are recomputed on
@@ -85,17 +101,30 @@ customer, `protocol_hash 14bf32af7a8144041eb1816628be5bc23a909575c8fa62b8861795b
 |---|---:|---:|---:|---:|---:|
 | `cbf` | 23,571 | 1,208 | 22,363 | 0.012824042796071428 | 0.25022807346539705 |
 | `popularity` | 23,571 | 1,208 | 22,363 | 0.011773410868238582 | 0.22972770494640035 |
+| `latest_buy` | 23,571 | 1,208 | 22,363 | 0.023452556952098066 | 0.4576160760909797 |
+| `latest_buy_or_sell` | 23,571 | 1,208 | 22,363 | 0.022658211912355255 | 0.44211648426003786 |
 
 The all-user mean is again dominated by the empty-truth convention (22,363 of
 23,571 users); report both labels or neither. This is still a teaching split, not
-the paper's protocol.
+the paper's protocol. The `--max-users 0` warm-cohort slice (`--cohort warm`, the
+default) is a different cohort with its own numbers
+(`protocol_hash 8645343ad810615aed56c65afaff9bf7d0ab4638fbd8005b4d6738b27016ab80`,
+10,404 users, 1,178 nonempty): `cbf` 0.028553169 / 0.252179264, `popularity`
+0.026172888 / 0.231156815, `latest_buy` 0.052632822 / 0.464848794,
+`latest_buy_or_sell` 0.050910886 / 0.449640793. Those warm-cohort values are
+measured on that slice only and must not be copied into the 100-user demo table.
 
 ## Rules and flags
 
 - Metadata is as-of the cutoff: the latest `asset_information` /
   `customer_information` row strictly before it. No later row is back-filled.
 - History is `Buy` rows strictly before the cutoff; repeated buys increase the
-  content weight. `Sell` rows are ignored.
+  content weight. `Sell` rows never enter history, popularity or CBF and are never
+  read as a negative label or a dislike. The one method that reads them is
+  `latest_buy_or_sell`, and only their event *date*: it ranks assets by the latest
+  past Buy-or-Sell date so an asset seen only through a Sell is not silently
+  dropped. `latest_buy` is the past-Buy-only variant; both are baselines, not a
+  preference or profitability statement.
 - Rows with a negative `transactionID` (reconstructed initial positions) are
   excluded by default and counted in `excluded_rows.reconstructed_initial_position_rows`.
 - Only exact duplicate rows are removed; a repeated `transactionID` for another
@@ -103,6 +132,11 @@ the paper's protocol.
 - An asset is eligible iff it has as-of metadata **and** at least one positive
   pre-cutoff close price. Truth is a future `Buy` in the 30-day window, intersected
   with the eligible set.
+- `latest_buy` / `latest_buy_or_sell` order the user's allowed assets by
+  `(-last pre-cutoff date, ISIN)`; a list shorter than ten is filled from the same
+  popularity order, so a cold user receives exactly the popularity list. With
+  `--exclude-seen`, the user's own past buys are excluded from the allowed list and
+  thus from both recency lists and from the fill.
 - `totalValue`, `units`, `limit_prices` and `profitability` are never read: no
   spending, revenue or return is computed or shown. Customer type, risk level and
   investment capacity are display-only context, copied verbatim (`Predicted_*` is
@@ -117,6 +151,13 @@ history), `--users-file` (frozen explicit cohort, must be unique as-of-known ids
 `--responses`, `--stage {encoder,ranker}`, `--shots-file`, `--on-invalid {error,fallback}`.
 `--max-users 0` with a large `--users-file` is how a full evaluation is run; the
 default 100 is a demo slice.
+
+The recency baselines are extra rows in the same run; they add no flag, do not
+change the candidate pool (`--candidate-count` stays 50), the prompt pool or the
+`protocol_hash`, and do not filter truth. `--plugin`/`--responses` still produce only
+`custom` and leave the recency rows unchanged, so a `custom` identity result remains
+equal to `cbf` and is not a recency comparison. The prompt payload and its
+`candidate_assets` still come from the CBF candidate order.
 
 ## The two extension points
 
@@ -221,10 +262,10 @@ or suitability is inferred, and the report never claims one.
 python3 -m unittest discover -s . -p 'test_*.py' -v
 ```
 
-The suite pins the frozen vectors TV1–TV16 (E1–E5) and runs the CLI on a temporary
+The suite pins the frozen vectors TV1–TV23 (E1–E6) and runs the CLI on a temporary
 CSV fixture for the cutoff, as-of, exclusion, cold-start, plugin, prompt, response,
-determinism and portability rules. It never reads the real archive and never calls
-a model.
+determinism, portability and recency-baseline rules. It never reads the real archive
+and never calls a model.
 
 ## Screenshots
 

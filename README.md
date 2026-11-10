@@ -4,8 +4,8 @@ Repository for Recommender Systems course in HSE : Code examples, assignments, a
 ## Project
 
 The FAR-Trans team project lives in [`project/far-trans/`](project/far-trans/README.md):
-a standard-library Python starter (common CSV loader, popularity and content-based
-baselines, nDCG@10 evaluation) plus the cohort and session instructions under
+a standard-library Python starter (common CSV loader, popularity, content-based and
+recency baselines, nDCG@10 evaluation) plus the cohort and session instructions under
 [`project/far-trans/instructions/`](project/far-trans/instructions/). The dataset
 itself is public and is not redistributed here; download it from
 <https://researchdata.gla.ac.uk/1658/> and pass the extracted folder with

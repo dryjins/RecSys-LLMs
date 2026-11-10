@@ -6,12 +6,13 @@
 ## 1. Goal
 
 Turn the Session 1 question into one executed, time-aware comparison. Use the provided
-`project/far-trans/` package as-is: it already has the common CSV loader, the Popularity
-and CBF baselines, the cutoff/as-of/eligibility rules and the nDCG@10 evaluation. **Do not
-reimplement these baselines.** Your work is one question linked to one change in the Encoder,
-Ranker or both, run against the provided baseline and reported as the `custom` method. This week
-requires actual implementation, experiments and your own verification; a performance improvement
-is **not** required now, and the final 50-point ranking is a separate later component.
+`project/far-trans/` package as-is: it already has the common CSV loader, four provided
+baselines (Popularity, CBF, `latest_buy` and `latest_buy_or_sell`), the
+cutoff/as-of/eligibility rules and the nDCG@10 evaluation. **Do not reimplement these
+baselines.** Your work is one question linked to one change in the Encoder, Ranker or both, run
+against the provided baselines and reported as the `custom` method. This week requires actual
+implementation, experiments and your own verification; a performance improvement is **not**
+required now, and the final 50-point ranking is a separate later component.
 
 ## 2. One change, one fair comparison
 
@@ -63,10 +64,23 @@ full metadata and stocks-only scopes remain pending; nDCG@10 measures purchase r
 
 ## 5. Required results table
 
-Include one table with one row per method (baseline and your change) and these labeled fields:
-method, evaluated users, candidate policy, protocol (cutoff/horizon/hash), nDCG@10 over all
-users, nDCG@10 over nonempty-truth users, runtime, and failure count. Exact formatting is free;
-the labels are not optional.
+Include one table with one row per method and these labeled fields: method, evaluated users,
+candidate policy, protocol (cutoff/horizon/hash), nDCG@10 over all users, nDCG@10 over
+nonempty-truth users, runtime, and failure count. Report **every provided baseline that applies**
+— `popularity`, `cbf`, `latest_buy` and `latest_buy_or_sell` — plus your `custom` change, so all
+four baselines appear in the same result table and the comparison is fair. Exact formatting is
+free; the labels are not optional.
+
+### Provided-baseline update
+
+The starter published for this course now emits the two recency baselines in every run, on
+exactly the same evaluated users, cutoff, horizon, candidate pool and truth as `popularity` and
+`cbf`; the protocol hash and the input contexts are unchanged by them. Re-run the **provided code**
+to obtain their numbers; do not reimplement them and do not copy values from these instructions.
+The primary metric remains the all-user nDCG@10 (empty truth scored `0`); the nonempty-truth mean
+is secondary and must be labelled with its user count. This update adds no deadline, no points,
+no profit or return claim, and no requirement that your change outperform any baseline; it only
+makes the comparison complete and repeatable.
 
 ## 6. Verification
 
@@ -101,7 +115,7 @@ No numeric rubric points are published here.
 ```bash
 # Baseline, provided code unchanged
 python starter.py run --data-dir /path/to/FAR-Trans --output-dir outputs/baseline
-# Your change through the plugin seam
+# Your change through the plugin seam; the same four baselines are re-emitted
 python starter.py run --data-dir /path/to/FAR-Trans --output-dir outputs/change --plugin extensions.py
 # Export prompts only; no model is called
 python starter.py export-prompts --stage ranker --data-dir /path/to/FAR-Trans --output-dir outputs/prompts
