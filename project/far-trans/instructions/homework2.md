@@ -23,9 +23,18 @@ SHA-256 values from `protocol.json`.
 
 The provided `extensions.py` identity plugin is **not** an LLM and is not experimental evidence.
 The simulated response files are protocol round-trip demos, not LLM outputs. A report must
-describe the method you actually executed, including model name/version, prompt or API/local
-setup, inputs, outputs, cache, call cost or runtime, and failures. You do not need a paid API
-and you do not need a local model; choose the one you actually use and say which.
+describe the method you actually executed, including model name/version, prompt, inputs,
+outputs, cache, call cost or runtime, and failures.
+
+Use a publicly available open-weight model for the required experiment. Run it locally or
+on an accessible notebook/cloud runtime; you do not need to own a GPU. Provide the model
+repository and exact revision, tokenizer version, runtime dependencies, runnable inference
+code, prompts and decoding settings. Record hardware, quantization and seeds where
+applicable. A chat interface or closed API alone is not a reproducible required experiment.
+Optional closed-API comparisons must be labelled separately. The starter's prompt-export and
+response-import commands remain useful for debugging the protocol, but the required change
+must include your own model-call code committed in the project; a hand-made response file or
+a chat transcript is a manual trial, not the final required experiment.
 
 ## 3. Encoder, Ranker, Hybrid
 
