@@ -259,6 +259,36 @@ def json_file(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
 
+def print_summary(metrics):
+    """Print the human-readable console summary.
+
+    Only this display rounds metric values (four decimals); `metrics.json`,
+    `per_user.csv` and `protocol.json` keep full precision.
+    """
+    columns = ('method', 'users', 'nonempty truth', 'empty truth',
+               'nDCG@10 (all)', 'nDCG@10 (nonempty)')
+    table = [columns]
+    for name, row in metrics['methods'].items():
+        table.append((name, str(row['users']), str(row['nonempty_truth_users']),
+                      str(row['empty_truth_users']),
+                      *(f"{row[key]:.4f}" if row[key] is not None else 'n/a'
+                        for key in ('ndcg_at_10', 'ndcg_at_10_nonempty'))))
+    widths = [max(len(line[i]) for line in table) for i in range(len(columns))]
+    print('Run summary (console values rounded to 4 decimals; metrics.json keeps full precision)')
+    print('  '.join(cell.ljust(width) for cell, width in zip(columns, widths)))
+    print('  '.join('-' * width for width in widths))
+    for line in table[1:]:
+        print('  '.join(cell.ljust(width) if index < 2 else cell.rjust(width)
+                        for index, (cell, width) in enumerate(zip(line, widths))))
+    print(f"protocol_hash {metrics['protocol_hash'][:12]} "
+          "(prefix; full value in protocol.json and metrics.json)")
+    print(f"excluded_rows {json.dumps(metrics['excluded_rows'], sort_keys=True)}")
+    print(f"custom_failures {len(metrics['custom_failures'])}")
+    for failure in metrics['custom_failures']:
+        print(f"  {failure['user_id']}: {failure['error']}")
+    print(metrics['note'])
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('command', choices=['run', 'export-prompts'])
@@ -403,7 +433,7 @@ def main():
         'custom_failures': failures, 'excluded_rows': excluded,
         'note': 'Offline purchase relevance, not profitability or asset suitability.'}
     json_file(args.output_dir / 'metrics.json', metrics)
-    print(json.dumps(metrics, ensure_ascii=False, indent=2))
+    print_summary(metrics)
 
 
 if __name__ == '__main__':

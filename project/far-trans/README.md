@@ -55,17 +55,24 @@ The script writes five files:
   `ndcg_at_10`;
 - `metrics.json` — the aggregate block and the excluded-row counts.
 
+The console prints a short summary table with metric values rounded to four decimals
+and only the first 12 characters of `protocol_hash`; the written files above keep full
+precision and the complete hash.
+
 ### Actual result of the command above
 
-Warm cohort, 100 users, cutoff `2021-06-01`, label window `2021-06-01 … 2021-06-30`,
-`protocol_hash 50efd4aeb415ba6f0c66dd0793a7c2033cdc32a42b86b58eebbca3e81eaf3417`:
+Warm cohort, 100 users, cutoff `2021-06-01`, label window `2021-06-01 … 2021-06-30`.
+Metric values are rounded to four decimals for display; `metrics.json` and `per_user.csv`
+keep full precision. Every run writes its own `protocol.json`, whose `protocol_hash` is a
+SHA-256 over the whole protocol: compare that file between runs instead of a hash copied
+from this page.
 
 | method | users | nonempty truth | empty truth | nDCG@10 (all users) | nDCG@10 (nonempty) |
 |---|---:|---:|---:|---:|---:|
-| `cbf` | 100 | 11 | 89 | 0.020100011736078574 | 0.18272737941889614 |
-| `popularity` | 100 | 11 | 89 | 0.028590012799467643 | 0.25990920726788763 |
-| `latest_buy` | 100 | 11 | 89 | 0.027722649787649066 | 0.2520240889786279 |
-| `latest_buy_or_sell` | 100 | 11 | 89 | 0.027107048693904026 | 0.2464277153991275 |
+| `cbf` | 100 | 11 | 89 | 0.0201 | 0.1827 |
+| `popularity` | 100 | 11 | 89 | 0.0286 | 0.2599 |
+| `latest_buy` | 100 | 11 | 89 | 0.0277 | 0.2520 |
+| `latest_buy_or_sell` | 100 | 11 | 89 | 0.0271 | 0.2464 |
 
 89 of 100 users have no future purchase in the window, so the primary mean is
 mostly the frozen `0.0` empty-truth convention (E3) and is **not** comparable with
@@ -95,23 +102,21 @@ every run, so two runs with the same inputs and CLI flags are byte-identical.
 ### Full-cohort run
 
 Dropping the demo slice (`--max-users 0 --cohort all`) evaluates every as-of
-customer, `protocol_hash 14bf32af7a8144041eb1816628be5bc23a909575c8fa62b8861795b3879f54e5`:
+customer:
 
 | method | users | nonempty truth | empty truth | nDCG@10 (all users) | nDCG@10 (nonempty) |
 |---|---:|---:|---:|---:|---:|
-| `cbf` | 23,571 | 1,208 | 22,363 | 0.012824042796071428 | 0.25022807346539705 |
-| `popularity` | 23,571 | 1,208 | 22,363 | 0.011773410868238582 | 0.22972770494640035 |
-| `latest_buy` | 23,571 | 1,208 | 22,363 | 0.023452556952098066 | 0.4576160760909797 |
-| `latest_buy_or_sell` | 23,571 | 1,208 | 22,363 | 0.022658211912355255 | 0.44211648426003786 |
+| `cbf` | 23,571 | 1,208 | 22,363 | 0.0128 | 0.2502 |
+| `popularity` | 23,571 | 1,208 | 22,363 | 0.0118 | 0.2297 |
+| `latest_buy` | 23,571 | 1,208 | 22,363 | 0.0235 | 0.4576 |
+| `latest_buy_or_sell` | 23,571 | 1,208 | 22,363 | 0.0227 | 0.4421 |
 
 The all-user mean is again dominated by the empty-truth convention (22,363 of
 23,571 users); report both labels or neither. This is still a teaching split, not
 the paper's protocol. The `--max-users 0` warm-cohort slice (`--cohort warm`, the
-default) is a different cohort with its own numbers
-(`protocol_hash 8645343ad810615aed56c65afaff9bf7d0ab4638fbd8005b4d6738b27016ab80`,
-10,404 users, 1,178 nonempty): `cbf` 0.028553169 / 0.252179264, `popularity`
-0.026172888 / 0.231156815, `latest_buy` 0.052632822 / 0.464848794,
-`latest_buy_or_sell` 0.050910886 / 0.449640793. Those warm-cohort values are
+default) is a different cohort with its own numbers (10,404 users, 1,178
+nonempty): `cbf` 0.0286 / 0.2522, `popularity` 0.0262 / 0.2312, `latest_buy`
+0.0526 / 0.4648, `latest_buy_or_sell` 0.0509 / 0.4496. Those warm-cohort values are
 measured on that slice only and must not be copied into the 100-user demo table.
 
 ## Rules and flags

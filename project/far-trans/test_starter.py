@@ -713,6 +713,29 @@ class TemporalFixture(unittest.TestCase):
         assert_close(self, cbf['ndcg_at_10'] * cbf['users'],
                      cbf['ndcg_at_10_nonempty'] * cbf['nonempty_truth_users'])
 
+    def test_console_summary_rounds_only_the_display(self):
+        proc, metrics = self.cli('run', '--output-dir', self.root / 'console')
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        stdout = proc.stdout
+        self.assertIn('Run summary', stdout)
+        self.assertIn('rounded to 4 decimals', stdout)
+        for method, row in metrics['methods'].items():
+            self.assertIn(method, stdout)
+            self.assertIn(f"{row['ndcg_at_10']:.4f}", stdout)
+            self.assertIn(f"{row['ndcg_at_10_nonempty']:.4f}", stdout)
+            # The full-precision value stays in metrics.json, not on the console.
+            for value in (row['ndcg_at_10'], row['ndcg_at_10_nonempty']):
+                if value is not None and len(str(value)) > 6:
+                    self.assertNotIn(str(value), stdout)
+        # The console shows a short hash prefix, never the whole 64-char digest.
+        digest = metrics['protocol_hash']
+        self.assertEqual(len(digest), 64)
+        self.assertIn(digest[:12], stdout)
+        self.assertNotIn(digest, stdout)
+        written = json.loads((self.root / 'console' / 'metrics.json').read_text(encoding='utf-8'))
+        self.assertEqual(written['protocol_hash'], digest)
+        self.assertEqual(written['methods'], metrics['methods'])
+
 
 if __name__ == '__main__':
     unittest.main()
