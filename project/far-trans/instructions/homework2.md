@@ -1,141 +1,103 @@
-# Session 2 — Implementation and Baselines (Individual Homework 2)
+# Homework 2 — Implement and Test Your Idea
 
-**Course**: LLM4Rec, HSE University · **Instructor**: Seungmin Jin (sedzhin@hse.ru), GitHub dryjins
-**Task**: individual homework; every student submits their own report and session export. **Deadline**: TBA.
+**Individual submission:** PDF report + AI-session export.  
+**Deadline:** To be announced.
 
-## 1. Goal
+## 1. Your task
 
-Turn the Session 1 question into one executed, time-aware comparison. Use the provided
-`project/far-trans/` package as-is: it already has the common CSV loader, four provided
-baselines (Popularity, CBF, `latest_buy` and `latest_buy_or_sell`), the
-cutoff/as-of/eligibility rules and the nDCG@10 evaluation. **Do not reimplement these
-baselines.** Your work is one question linked to one change in the Encoder, Ranker or both, run
-against the provided baselines and reported as the `custom` method. This week requires actual
-implementation, experiments and your own verification; a performance improvement is **not**
-required now, and the final 50-point ranking is a separate later component.
+Implement one change related to your Session 1 research question. Compare it with the provided FAR-Trans baselines and explain the result.
 
-## 2. One change, one fair comparison
+**Your method does not have to improve performance this week. You must implement it, run the comparison, and verify the results.**
 
-Implement one change that follows from your question, then run baseline and change under an
-identical frozen protocol: same evaluated users, cutoff, horizon, eligible universe, input
-information, scoring and tie-break. Both runs must report the same `protocol_hash` and source
-SHA-256 values from `protocol.json`.
+## 2. What we provide
 
-The provided `extensions.py` identity plugin is **not** an LLM and is not experimental evidence.
-The simulated response files are protocol round-trip demos, not LLM outputs. A report must
-describe the method you actually executed, including model name/version, prompt, inputs,
-outputs, cache, call cost or runtime, and failures.
+The starter includes data loading, time-based filtering, recommendation output checks, and nDCG@10 evaluation. It also runs four baselines:
 
-Use a publicly available open-weight model for the required experiment. Run it locally or
-on an accessible notebook/cloud runtime; you do not need to own a GPU. Provide the model
-repository and exact revision, tokenizer version, runtime dependencies, runnable inference
-code, prompts and decoding settings. Record hardware, quantization and seeds where
-applicable. A chat interface or closed API alone is not a reproducible required experiment.
-Optional closed-API comparisons must be labelled separately. The starter's prompt-export and
-response-import commands remain useful for debugging the protocol, but the required change
-must include your own model-call code committed in the project; a hand-made response file or
-a chat transcript is a manual trial, not the final required experiment.
+| Baseline | What it recommends |
+|---|---|
+| Popularity | Assets bought by the most historical users |
+| CBF | Assets similar to the user's past purchases |
+| Latest buy | The user's most recently bought assets |
+| Latest buy or sell | The user's most recently bought or sold assets |
 
-## 3. Encoder, Ranker, Hybrid
+**Use these implementations. You do not need to rebuild them.** The supplied `extensions.py` is an identity example, not an LLM model.
 
-- **Encoder**: the seam accepts finite nonnegative weights for assets already in history, then
-  re-scores with the same content model. This is a bridge, not a semantic embedding. If you
-  claim real text embeddings, define the exact connection from text representation to scorer and
-  implement it; an auto-generated summary that never reaches the ranking is not encoder work.
-- **Ranker**: rerank a frozen candidate list to isolate ranking. For an end-to-end system,
-  internal candidate generation may differ, but the shared eligible universe and truth must be
-  common to both arms.
-- **Hybrid**: separate encoder and ranker contributions; a minimum baseline-vs-change comparison
-  is enough for your scope. Do not force every team into four conditions.
+## 3. What you implement
 
-Zero-shot prompting is allowed. Few-shot demonstrations are optional unless your question
-requires them; the agreed minimum is one working connection, and demonstrations must come from
-the past, precede the cutoff and exclude evaluated users. Prompting does not update model
-weights, and weight training is not required.
+Choose the approach that matches your research question:
 
-## 4. Protocol and reporting
+| Approach | Your change |
+|---|---|
+| Encoder | Use an LLM to build a user or asset representation that affects recommendation scores. |
+| Ranker | Use an LLM to reorder candidate assets. |
+| Both | Combine the two and explain what each component contributes. |
 
-Use the starter defaults for the teaching run: warm cohort, 100 users, cutoff `2021-06-01`,
-30-day horizon, repeats allowed, empty truth scored `0` in the all-user mean while the nonempty
-mean is reported separately. This is a provisional teaching protocol, not the frozen final
-benchmark. Keep the same users and hash; do not drop users based on future truth or build your
-own filtered subset to obtain a higher comparable number.
+Start with one working version. Zero-shot prompting is enough; add few-shot examples only if your question needs them. Use only earlier training material for demonstrations, not evaluation users' future purchases.
 
-Expect roughly 89 of 100 demo users to have empty truth (the reference run has 11 nonempty).
-Report both means and counts; do not compare the all-user mean with the nonempty mean or with
-published paper numbers. Predeclare subgroup analysis with counts and a fixed primary cohort.
-If an output is invalid, report the fallback or error; never silently drop failed cases.
+**Use a publicly available open-weight model and provide runnable inference code.** Record its repository and exact version, prompts, dependencies, generation settings, and hardware. You may run it locally or on a notebook/cloud runtime.
 
-All features must be legitimately available at prediction time: use the actual raw FAR-Trans
-files, mark fields observed, predicted/estimated or missing, and never read future prices,
-profitability or purchases. The risk profile is display-only, never a filter or score. Questionnaire,
-full metadata and stocks-only scopes remain pending; nDCG@10 measures purchase ranking, not profit.
+The starter supports a Python plugin or saved model responses. You must connect the actual model call; exporting a prompt alone does not run an LLM. Its simple Encoder interface reweights past assets. If your project uses text embeddings instead, implement how those vectors produce recommendation scores.
 
-## 5. Required results table
+## 4. Run a fair comparison
 
-Include one table with one row per method and these labeled fields: method, evaluated users,
-candidate policy, protocol (cutoff/horizon/hash), nDCG@10 over all users, nDCG@10 over
-nonempty-truth users, runtime, and failure count. Report **every provided baseline that applies**
-— `popularity`, `cbf`, `latest_buy` and `latest_buy_or_sell` — plus your `custom` change, so all
-four baselines appear in the same result table and the comparison is fair. Exact formatting is
-free; the labels are not optional.
+Keep the same users, cutoff, eligible assets, and scoring rules for the baselines and your method. For a reranker-only experiment, also keep the candidate list fixed. Do not remove difficult users or failed outputs from the comparison.
 
-### Provided-baseline update
+Use the starter defaults for this homework:
 
-The starter published for this course now emits the two recency baselines in every run, on
-exactly the same evaluated users, cutoff, horizon, candidate pool and truth as `popularity` and
-`cbf`; the protocol hash and the input contexts are unchanged by them. Re-run the **provided code**
-to obtain their numbers; do not reimplement them and do not copy values from these instructions.
-The primary metric remains the all-user nDCG@10 (empty truth scored `0`); the nonempty-truth mean
-is secondary and must be labelled with its user count. This update adds no deadline, no points,
-no profit or return claim, and no requirement that your change outperform any baseline; it only
-makes the comparison complete and repeatable.
+- **Users:** the provided deterministic sample of 100 users with purchase history.
+- **Cutoff:** 1 June 2021; **evaluation window:** the following 30 days.
+- **Repeat purchases:** previously bought assets may be recommended again.
+- **Primary metric:** average nDCG@10 over all selected users; empty truth counts as zero.
+- **Also report:** average nDCG@10 for users with future purchases, and their number.
 
-## 6. Verification
+These are teaching settings, not the final project test protocol. In the reference sample, only 11 of 100 users have future purchases. Always distinguish the two averages. Check that the runs have matching settings in `protocol.json`; keep the full hashes in the output files, not in the report's main table.
 
-Do at least one concrete correctness check beyond trusting the code: confirm context and prompt
-IDs are past-only with no truth or missing-ID leak; mutate one user's future label and confirm
-the scalar nDCG@10 changes as expected; or rerun one case and compare scalar and protocol hash.
-Hand computation alone is not sufficient.
+Do not use future transactions or later metadata as model inputs. A high purchase-prediction score does not establish investment suitability or profit.
 
-## 7. Team work and deliverables
+## 5. What to report
 
-Shared team code is allowed, but your PDF must make your personal role clear and include the
-team discussion inside it: what was agreed, your contribution and what you verified yourself.
-A team-only PDF is not a submission, and a repository or link cannot replace either file. Keep
-3–7 references under the existing Related Work rule (for example the official FAR-Trans dataset
-paper and Python documentation); do not invent URLs or impose a new mandatory literature review.
+Explain your research question, what you changed, and how the change connects to the recommendation pipeline. Include a results table for the four provided baselines and your method:
 
-Submit per the existing guidelines: an individual PDF and the AI-session export (tool-native
-JSONL accepted; a documented derivative is fine only if it preserves code, tool calls and
-results). The first page carries your name, team and date. Maximum 5 pages excluding references;
-no arbitrary 2–3-page target. Use the existing sections: Title, Abstract, Introduction, Related
-Work, Method, Experiments, Discussion, AI Usage, References. Include the team GitHub repository and your commit link in the PDF; the shared
-repository with the instructor as collaborator exists but does not replace the files above.
+| Method | Users | Users with future purchases | nDCG@10: all users | nDCG@10: nonempty truth | Runtime | Failed cases |
+|---|---:|---:|---:|---:|---:|---:|
+| Popularity | | | | | | |
+| CBF | | | | | | |
+| Latest buy | | | | | | |
+| Latest buy or sell | | | | | | |
+| Your method | | | | | | |
 
-The existing §5 failure discussion applies only if you actually found a defect in the provided
-code; do not invent a failure case, and finding a code bug is not mandatory. If you cannot run
-the LLM part, state honestly that the implementation is incomplete and do not claim the
-milestone. Honest incompleteness is distinguished from full completion; no automatic false pass.
-No numeric rubric points are published here.
+Show metrics to **four decimal places**. State the candidate policy and how invalid outputs were handled. If runtime is measured for the whole run rather than each method, label it that way instead of inventing separate timings.
 
-## 8. Run commands (verified flags)
+Then discuss what improved, what failed, and your next experiment. A negative result is acceptable; an unexecuted method must be reported as incomplete.
+
+**Personally verify at least one important result.** For example, check one user's recommendation IDs and nDCG calculation, confirm that model inputs contain no future data, or reproduce an output from the saved settings. Explain the check and its outcome; do not merely say “verified.”
+
+Include your team's discussion, your own contribution, and what you personally checked. Shared team code is allowed; each student must explain their own work.
+
+## 6. Run the starter
+
+From the folder containing `starter.py`:
 
 ```bash
-# Baseline, provided code unchanged
+# Run all four provided baselines.
 python starter.py run --data-dir /path/to/FAR-Trans --output-dir outputs/baseline
-# Your change through the plugin seam; the same four baselines are re-emitted
+
+# Run your extension alongside the same baselines.
 python starter.py run --data-dir /path/to/FAR-Trans --output-dir outputs/change --plugin extensions.py
-# Export prompts only; no model is called
-python starter.py export-prompts --stage ranker --data-dir /path/to/FAR-Trans --output-dir outputs/prompts
 ```
 
-Run these from the folder containing `starter.py` and `extensions.py`. `/path/to/FAR-Trans` is a
-placeholder for the extracted-CSV folder, not a machine path. Plain code paths are fine in the
-report; no local Markdown hyperlinks and no absolute machine paths.
+Replace `/path/to/FAR-Trans` with your extracted dataset folder. The starter README explains the plugin and model-response formats.
+
+## 7. Submit
+
+- **Your individual PDF report**, following the existing homework structure and five-page limit excluding references.
+- **Your AI-session export.** Native JSONL is accepted. A documented derivative must preserve the generated code, tool calls, and results.
+
+Include your name, team, GitHub repository, and experiment commit in the PDF. Use the usual sections: Title, Abstract, Introduction, Related Work, Method, Experiments, Discussion, AI Usage Disclosure, and References. Follow the existing citation requirements and distinguish your own verification from AI-performed checks.
+
+Submit through the established homework channel. The team repository does not replace either required file. Final project ranking points are separate from this week's implementation homework.
 
 ## References
 
-[1] J. Sanz-Cruzado, N. Droukas, R. McCreadie, "FAR-Trans: An Investment Dataset for Financial
-Asset Recommendation," IJCAI-2024 Workshop on Recommender Systems in Finance (Fin-RecSys), 2024.
-[2] Python Software Foundation, "Python 3 documentation" (optional tool reference).
+- Sanz-Cruzado, Droukas, and McCreadie. *FAR-Trans: An Investment Dataset for Financial Asset Recommendation*, 2024. https://arxiv.org/abs/2407.08692
+- Official dataset: https://researchdata.gla.ac.uk/1658/
