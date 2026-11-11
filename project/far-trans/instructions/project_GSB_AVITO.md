@@ -133,6 +133,74 @@ these weights to individual assignment points is not published, and none is
 invented here. Session 1 remains an individual homework under the existing
 guidelines; this document assigns no Session-1 points.
 
+### Shared benchmark ranking (50 points)
+
+The 50-point benchmark component is a **rank-based** score within a comparison
+cohort, not a transformation of the metric magnitude. Let `N` be the number of
+eligible teams with a valid official submission in that cohort, and let `r` be
+the team's **average rank** among the **official, unrounded** nDCG@10 values
+(not the four-decimal display values). With average ranking of exact ties, a
+team's points are
+
+```
+points = 50 - 40 * (r - 1) / (N - 1)    for N > 1
+```
+
+rounded for display to one decimal place. A unique best rank gives 50 points and
+a unique lowest rank gives 10 points. If `N = 1`, the single valid team receives
+50 points. For example, with three eligible teams whose official nDCG@10 values
+are strictly ordered, the points from best to worst are 50, 30 and 10. Teams
+with identical official nDCG@10 share the same average rank and therefore the
+same points; the formula does not reserve 50 points for every tied team, and no
+all-tie case is added beyond this average-rank rule (for `N > 1`, an all-tie
+cohort therefore gives 30 points to each team).
+
+A team with no valid submission or an invalid submission does **not** receive
+the 10-point benchmark minimum: it records **0** on the 50-point benchmark
+component. This zero applies to the benchmark component only and is not, by
+itself, a project-wide Gate 0; any project-wide failure follows the applicable
+integrity policy.
+
+Rank is computed **within a comparison cohort**. FKN, GSB and AVITO are separate
+cohorts, and the instructor has not fixed whether any cohorts are pooled; do not
+assume or invent a pooled grouping. The comparison groups and valid-submission
+criteria will be announced before the final deadline; do not pool cohorts with
+different project durations without an announced rule.
+
+nDCG@10 measures ranking accuracy, not profit; no bootstrap significance test,
+team-level bias correction or other unannounced statistic is used.
+
+### Participation, defense and individual contribution
+
+All team members do not need to attend the presentation. The presenting members
+must be prepared to defend the whole team's data, model, protocol, experiments
+and limitations, and if they cannot cover a part, the member(s) responsible for
+that part must attend the Q&A; there is no new requirement that every member
+present or hold a role.
+
+Individual contribution is evidenced separately in each student's PDF report and
+in commits/code, experiments, source analysis and verification, not only through
+code commits. Evidence must name concrete contributions, not a general "we did"
+statement. Individual explanations and questions in the Q&A may be used to
+confirm the claimed contribution.
+
+As verbally announced in Session 1, non-participation fails the project
+regardless of the team score. A student may fail the project if their individual
+contribution is absent or judged insufficient, even when the team receives a
+passing or high score. "Insufficient" means no substantive, identifiable and
+verifiable contribution, or an inability to substantiate the claimed work; it
+does not mean low model performance, fewer commits than teammates, or normal
+absence.
+
+A missing individual homework is missing required progress/contribution evidence
+and triggers this check; it is not by itself automatic proof of
+non-participation. Documented other contributions may be considered subject to
+instructor judgment, with no automatic exemption; the individual homework
+requirement itself is unchanged.
+
+This rule applies to the final project only and creates no course-wide automatic
+fail. It changes no historical reports or grades.
+
 ### Stanford AI review rubric (course-defined)
 
 The 20-point Stanford AI review component is scored with the following
