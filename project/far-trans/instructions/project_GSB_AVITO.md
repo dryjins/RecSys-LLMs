@@ -136,11 +136,24 @@ guidelines; this document assigns no Session-1 points.
 ### Shared benchmark ranking (50 points)
 
 The 50-point benchmark component is a **rank-based** score within a comparison
-cohort, not a transformation of the metric magnitude. Let `N` be the number of
-eligible teams with a valid official submission in that cohort, and let `r` be
-the team's **average rank** among the **official, unrounded** nDCG@10 values
-(not the four-decimal display values). With average ranking of exact ties, a
-team's points are
+cohort, not a transformation of the metric magnitude. Performance is the
+**official, unrounded** nDCG@10 value (not the four-decimal display value).
+When official benchmark performance is equal, the method with lower computational cost ranks higher. The common execution conditions and cost metric will be specified before final submission. If both performance and cost are tied, use the average rank.
+
+The execution conditions and cost measurement rule are announced **before the
+final deadline**; this document does not fix them now, and it does not invent a
+universal FLOP count, an API price as the total cost, or any other hard numeric
+threshold. Each team must report inference/runtime cost together with the
+reported hardware, runtime, model precision, batch size and caching policy needed
+for a fair replay. These are submission requirements, not an extra penalty, and
+no separate fine-tuning penalty is added. Whether cost is measured for training
+or inference is not defined here; the measurable cost metric remains to be
+announced. Teams may not silently substitute different hardware or wall-clock
+timing. If inference uses precomputation, the precomputation accounting rule will
+also be announced before the final deadline, so that cost cannot be hidden.
+
+Let `N` be the number of eligible teams with a valid official submission in that
+cohort, and let `r` be the team's rank under this order. A team's points are
 
 ```
 points = 50 - 40 * (r - 1) / (N - 1)    for N > 1
@@ -149,11 +162,12 @@ points = 50 - 40 * (r - 1) / (N - 1)    for N > 1
 rounded for display to one decimal place. A unique best rank gives 50 points and
 a unique lowest rank gives 10 points. If `N = 1`, the single valid team receives
 50 points. For example, with three eligible teams whose official nDCG@10 values
-are strictly ordered, the points from best to worst are 50, 30 and 10. Teams
-with identical official nDCG@10 share the same average rank and therefore the
-same points; the formula does not reserve 50 points for every tied team, and no
-all-tie case is added beyond this average-rank rule (for `N > 1`, an all-tie
-cohort therefore gives 30 points to each team).
+are strictly ordered, the points from best to worst are 50, 30 and 10. A
+performance tie is broken by lower computational cost, so tied performance alone
+does not share the average rank; only a tie on both performance and cost uses the
+average rank and therefore the same points. If every team is tied on both, each
+receives the average rank and, for `N > 1`, 30 points. The formula does not
+reserve 50 points for every tied team.
 
 A team with no valid submission or an invalid submission does **not** receive
 the 10-point benchmark minimum: it records **0** on the 50-point benchmark
