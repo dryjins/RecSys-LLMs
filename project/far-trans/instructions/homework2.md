@@ -72,7 +72,15 @@ Then discuss what improved, what failed, and your next experiment. A negative re
 
 **Personally verify at least one important result.** For example, check one user's recommendation IDs and nDCG calculation, confirm that model inputs contain no future data, or reproduce an output from the saved settings. Explain the check and its outcome; do not merely say “verified.”
 
-Include your team's discussion, your own contribution, and what you personally checked. Shared team code is allowed; each student must explain their own work.
+### Team Discussion and Individual Contribution
+
+Include the following in the Discussion section of your individual PDF:
+
+- What your team discussed and decided, including unresolved questions.
+- Your own contribution: what you proposed, implemented, tested or verified.
+- Which work was shared and which work you performed yourself.
+
+Shared team code is allowed, but your individual PDF must present your own work; no separate group report is required.
 
 ## 6. Run the starter
 
