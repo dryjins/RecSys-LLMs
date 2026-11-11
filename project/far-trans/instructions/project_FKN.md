@@ -174,13 +174,11 @@ code commits. Evidence must name concrete contributions, not a general "we did"
 statement. Individual explanations and questions in the Q&A may be used to
 confirm the claimed contribution.
 
-As verbally announced in Session 1, non-participation fails the project
-regardless of the team score. A student may fail the project if their individual
-contribution is absent or judged insufficient, even when the team receives a
-passing or high score. "Insufficient" means no substantive, identifiable and
-verifiable contribution, or an inability to substantiate the claimed work; it
-does not mean low model performance, fewer commits than teammates, or normal
-absence.
+A student may fail the project if their individual contribution is absent or
+judged insufficient, even when the team receives a passing or high score.
+"Insufficient" means no substantive, identifiable and verifiable contribution,
+or an inability to substantiate the claimed work; it does not mean low model
+performance, fewer commits than teammates, or normal absence.
 
 A missing individual homework is missing required progress/contribution evidence
 and triggers this check; it is not by itself automatic proof of
