@@ -20,7 +20,7 @@ The starter includes data loading, time-based filtering, recommendation output c
 | Latest buy | The user's most recently bought assets |
 | Latest buy or sell | The user's most recently bought or sold assets |
 
-**Use these implementations. You do not need to rebuild them.** The supplied `extensions.py` is an identity example, not an LLM model.
+**Use these implementations. You do not need to rebuild them.** The supplied `extensions.py` is an identity example, not an LLM model. You may add additional baselines, but you must retain and report all four provided baselines: Popularity, CBF, Latest buy, and Latest buy or sell.
 
 ## 3. What you implement
 

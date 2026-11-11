@@ -157,12 +157,7 @@ history), `--users-file` (frozen explicit cohort, must be unique as-of-known ids
 `--max-users 0` with a large `--users-file` is how a full evaluation is run; the
 default 100 is a demo slice.
 
-The recency baselines are extra rows in the same run; they add no flag, do not
-change the candidate pool (`--candidate-count` stays 50), the prompt pool or the
-`protocol_hash`, and do not filter truth. `--plugin`/`--responses` still produce only
-`custom` and leave the recency rows unchanged, so a `custom` identity result remains
-equal to `cbf` and is not a recency comparison. The prompt payload and its
-`candidate_assets` still come from the CBF candidate order.
+You may add additional baselines, but you must retain and report all four provided baselines: Popularity, CBF, Latest buy, and Latest buy or sell.
 
 ## The two extension points
 
