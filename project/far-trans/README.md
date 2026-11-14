@@ -10,6 +10,14 @@ reranker — where that component plugs in.
 This is a teaching illustration. The default CLI settings are **demo settings, not a
 grading protocol**, and nothing here is investment advice.
 
+## Provided LLM baselines
+
+Runnable open-weight [Encoder and Ranker baselines](../far-trans-llm/README.md)
+are provided as optional starting points, including actual model inference, prompts,
+tests, and aggregate results. Use the approach relevant to your question; running
+both is not required. Retain and report the same four classical baselines, and
+report negative results honestly; improvement is not required.
+
 ## Data
 
 The archive is about 9.8 MB. Download the official `FAR-Trans.zip` from

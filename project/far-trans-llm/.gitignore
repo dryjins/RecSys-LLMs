@@ -1,0 +1,22 @@
+# Local environments and Python caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+# Local data, model weights, caches, logs, and generated outputs
+data/
+models/
+model_weights/
+.cache/
+.cache-huggingface/
+generation_cache/
+outputs/
+logs/
+*.log
+*.jsonl
+*.csv
+*.safetensors
+*.bin
+*.pt
+*.pth

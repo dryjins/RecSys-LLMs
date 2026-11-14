@@ -22,6 +22,15 @@ The starter includes data loading, time-based filtering, recommendation output c
 
 **Use these implementations. You do not need to rebuild them.** The supplied `extensions.py` is an identity example, not an LLM model. You may add additional baselines, but you must retain and report all four provided baselines: Popularity, CBF, Latest buy, and Latest buy or sell.
 
+### Provided LLM baselines (optional starting points)
+
+Runnable Encoder and Ranker implementations are available in
+[the LLM baseline README](../../far-trans-llm/README.md). They include actual
+open-weight model calls, prompts, tests, and aggregate results; no teacher API is
+needed. Use the implementation relevant to your question as a starting point and
+identify your own change and contribution. You do not need to run both methods.
+Retain and report all four classical baselines. Improvement is not required.
+
 ## 3. What you implement
 
 Choose the approach that matches your research question:

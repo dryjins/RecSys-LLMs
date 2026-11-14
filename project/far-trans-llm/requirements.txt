@@ -1,0 +1,5 @@
+# Optional inference only; help, preparation, and tests use the standard library.
+# Measured runtime: torch 2.11.0+cu128; select a hardware-compatible wheel/index.
+# CPU/platform wheel availability was not checked; no installation is automatic.
+torch==2.11.0
+transformers==4.57.6

@@ -10,3 +10,6 @@ recency baselines, nDCG@10 evaluation) plus the cohort and session instructions 
 itself is public and is not redistributed here; download it from
 <https://researchdata.gla.ac.uk/1658/> and pass the extracted folder with
 `--data-dir`.
+
+Runnable open-weight [LLM Encoder and Ranker baselines](project/far-trans-llm/README.md)
+are also provided as optional starting points for the project.
