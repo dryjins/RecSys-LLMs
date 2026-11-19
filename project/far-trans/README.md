@@ -10,6 +10,11 @@ reranker — where that component plugs in.
 This is a teaching illustration. The default CLI settings are **demo settings, not a
 grading protocol**, and nothing here is investment advice.
 
+## Homework 3
+
+See the [HW3 instructions](instructions/homework3.md) for development experiments
+and the release schedule for the official final evaluation set.
+
 ## Provided LLM baselines
 
 Runnable open-weight [Encoder and Ranker baselines](../far-trans-llm/README.md)
